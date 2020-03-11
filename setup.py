@@ -18,7 +18,7 @@ setup(
     description="Config Argument Env Parser (CAEP)",
     long_description=long_description,
     long_description_content_type='text/markdown',
-    license="MIT",
+    license="ISC",
     keywords="mnemonic",
     packages=["caep"],
     url="https://github.com/mnemonic-no/caep",
