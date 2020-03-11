@@ -14,10 +14,10 @@ The configuration presedence are (from lowest to highest):
 
 Arguments are parsed in two phases. First, it will look for the argument --config argument
 which can be used to specify an alternative location for the ini file. If not --config argument
-is given it will look for an ini file in the following locations:
+is given it will look for an ini file in the following locations (~/.config has presedence):
 
-    /etc/<CONFIG_FILE_NAME>
-    ~/.config/<CONFIG_ID>/<CONFIG_FILE_NAME> (or directory specified by XDG_CONFIG_HOME)
+- ~/.config/<CONFIG_ID>/<CONFIG_FILE_NAME> (or directory specified by XDG_CONFIG_HOME)
+- /etc/<CONFIG_FILE_NAME>
 
 The ini file can contain a "[DEFAULT]" section that will be used for all configurations.
 In addition it can have a section that corresponds with <SECTION_NAME> that for
@@ -97,6 +97,10 @@ def load_ini(config_id: Text,
              opts: Optional[List] = None) -> Tuple[Optional[configparser.ConfigParser], List]:
     """
     return config, remainder_argv
+
+    config_id and config_name will be used to locate the default config like this:
+        - ~/.config/<CONFIG_ID>/<CONFIG_FILE_NAME>
+        - /etc/<CONFIG_FILE_NAME>
     """
 
     early_parser = argparse.ArgumentParser(description="configfile parser", add_help=False)
@@ -191,6 +195,10 @@ def handle_args(parser: argparse.ArgumentParser,
     """
     parses and sets up the command line argument system above
     with config file parsing.
+
+    config_id and config_name will be used to locate the default config like this:
+        - ~/.config/<CONFIG_ID>/<CONFIG_FILE_NAME>
+        - /etc/<CONFIG_FILE_NAME>
     """
 
     cp, remainder_argv = load_ini(config_id, config_name, opts=opts)
