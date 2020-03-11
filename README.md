@@ -14,8 +14,8 @@ Arguments are parsed in two phases. First, it will look for the argument --confi
 which can be used to specify an alternative location for the ini file. If not --config argument
 is given it will look for an ini file in the following locations (~/.config has presedence):
 
-- /etc/<CONFIG_FILE_NAME>
 - ~/.config/<CONFIG_ID>/<CONFIG_FILE_NAME> (or directory specified by XDG_CONFIG_HOME)
+- /etc/<CONFIG_FILE_NAME>
 
 The ini file can contain a "[DEFAULT]" section that will be used for all configurations.
 In addition it can have a section that corresponds with <SECTION_NAME> that for
