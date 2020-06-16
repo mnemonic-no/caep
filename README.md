@@ -34,9 +34,11 @@ variables:
 Example:
 
 ```
+>>> import caep
+>>> import argparse
 >>> parser = argparse.ArgumentParser("test argparse")
 >>> parser.add_argument('--number', type=int, default=1)
 >>> parser.add_argument('--bool', action='store_true')
 >>> parser.add_argument('--str-arg')
->>> args = config.handle_args(parser, <CONFIG_ID>, <CONFIG_FILE_NAME>, <SECTION_NAME>)
+>>> args = caep.config.handle_args(parser, <CONFIG_ID>, <CONFIG_FILE_NAME>, <SECTION_NAME>)
 ```
