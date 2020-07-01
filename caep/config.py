@@ -173,7 +173,13 @@ def get_default(action: argparse.Action, section: Dict, key: Text) -> Any:
             default = False
 
     if action.nargs in (argparse.ZERO_OR_MORE, argparse.ONE_OR_MORE):
-        default = default.split()
+        if isinstance(default, str):
+            default = default.split()
+        elif isinstance(default, list):
+            pass
+        else:
+            raise ValueError("Not string or list in nargs")
+
 
     # If argument type is set and default is not None, enforce type
     # Eg, for this argument specification
