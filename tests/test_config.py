@@ -16,7 +16,7 @@ def __argparser() -> argparse.ArgumentParser:
     return parser
 
 
-def test_argparse_only():
+def test_argparse_only() -> None:
     """ all arguments from command line, using default for number and bool """
 
     parser = __argparser()
@@ -30,7 +30,7 @@ def test_argparse_only():
     assert not args.bool
 
 
-def test_argparse_ini():
+def test_argparse_ini() -> None:
     """ all arguments from ini file """
     parser = __argparser()
 
@@ -43,7 +43,7 @@ def test_argparse_ini():
     assert args.bool is True
 
 
-def test_argparse_env():
+def test_argparse_env() -> None:
     """ all arguments from env """
     parser = __argparser()
 
@@ -67,7 +67,7 @@ def test_argparse_env():
         del os.environ[key]
 
 
-def test_argparse_env_ini():
+def test_argparse_env_ini() -> None:
     """
     --number from enviorment
     --bool from ini
