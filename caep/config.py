@@ -145,13 +145,11 @@ def get_default(action: argparse.Action, section: Dict, key: Text) -> Any:
     """
     Find default value for an option. This will only be used if an
     argument is not specified at the command line. The defaults will
-    be found in this order and continue until a value is found:
-        1. environment variable
-        2. ini file
-        3. argparse default
+    be found in this order (from lowest to highest):
+        1. argparse default
+        3. ini file
+        3. environment variable
 
-    This will only be used if the argument is not specified at the
-    command line.
     """
     default = action.default
     env = get_env(key)
@@ -180,7 +178,6 @@ def get_default(action: argparse.Action, section: Dict, key: Text) -> Any:
         else:
             raise ValueError("Not string or list in nargs")
 
-
     # If argument type is set and default is not None, enforce type
     # Eg, for this argument specification
     # parser.add_argument('--int-arg', type=int)
@@ -191,6 +188,30 @@ def get_default(action: argparse.Action, section: Dict, key: Text) -> Any:
         default = action.type(default)
 
     return default
+
+
+def all_defaults(
+        parser: argparse.ArgumentParser,
+        config: Dict) -> Dict:
+    """ Get defaults based on presedence """
+
+    defaults = {}
+
+    # Loop over parser groups / actions
+    # Unfortunately we can only do this in protected members..
+    # pylint: disable=protected-access
+    for g in parser._action_groups:
+        for action in g._actions:
+            if action.required:
+                raise NotSupported('"required" argument is not supported (found in option {}). '.format(
+                    "".join(action.option_strings)) + "Set to false and test after it has been parsed by handle_args()")
+            for option_string in action.option_strings:
+                if option_string.startswith('--'):
+                    key = option_string[2:]
+
+                    defaults[action.dest] = get_default(action, config, key)
+
+    return defaults
 
 
 def handle_args(parser: argparse.ArgumentParser,
@@ -218,17 +239,6 @@ def handle_args(parser: argparse.ArgumentParser,
     else:
         config = {}
 
-    # Loop over parser groups / actions
-    # Unfortunately we can only do this in protected members..
-    # pylint: disable=protected-access
-    for g in parser._action_groups:
-        for action in g._actions:
-            if action.required:
-                raise NotSupported('"required" argument is not supported (found in option {}). '.format(
-                    "".join(action.option_strings)) + "Set to false and test after it has been parsed by handle_args()")
-            for option_string in action.option_strings:
-                if option_string.startswith('--'):
-                    key = option_string[2:]
-                    action.default = get_default(action, config, key)
+    parser.set_defaults(**all_defaults(parser, config))
 
     return parser.parse_args(remainder_argv)
