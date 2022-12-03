@@ -12,21 +12,26 @@ The configuration presedence are (from lowest to highest):
 
 # Config
 
-Arguments are parsed in two phases. First, it will look for the argument --config argument
-which can be used to specify an alternative location for the ini file. If not --config argument
-is given it will look for an ini file in the following locations (~/.config has presedence):
+Arguments are parsed in two phases. First, it will look for the
+argument --config argument which can be used to specify an
+alternative location for the ini file. If not --config argument
+is given it will look for an ini file in the following locations
+(~/.config has presedence):
 
-- ~/.config/<CONFIG_ID>/<CONFIG_FILE_NAME> (or directory specified by XDG_CONFIG_HOME)
+- ~/.config/<CONFIG_ID>/<CONFIG_FILE_NAME>
+  (or directory specified by XDG_CONFIG_HOME)
 - /etc/<CONFIG_FILE_NAME>
 
-The ini file can contain a "[DEFAULT]" section that will be used for all configurations.
-In addition it can have a section that corresponds with <SECTION_NAME> that for
-specific cofiguration, that will over overide config from DEFAULT
+The ini file can contain a "[DEFAULT]" section that will be used
+for all configurations. In addition it can have a section that
+corresponds with <SECTION_NAME> that for specific cofiguration,
+that will over overide config from DEFAULT
 
 # Environment variables
 
-The configuration step will also look for environment variables in uppercase and
-with "-" replaced with "_". For the example below it will lookup the following environment
+The configuration step will also look for environment variables
+in uppercase and with "-" replaced with "_". For the example below
+it will lookup the following environment
 variables:
 
     - $NUMBER
@@ -39,7 +44,11 @@ Example:
 >>> parser.add_argument('--number', type=int, default=1)
 >>> parser.add_argument('--bool', action='store_true')
 >>> parser.add_argument('--str-arg')
->>> args = config.handle_args(parser, <CONFIG_ID>, <CONFIG_FILE_NAME>, <SECTION_NAME>)
+>>> args = config.handle_args(
+        parser,
+        <CONFIG_ID>,
+        <CONFIG_FILE_NAME>,
+        <SECTION_NAME>)
 
 """
 
@@ -47,15 +56,15 @@ import argparse
 import configparser
 import os
 from functools import partialmethod
-from typing import Any, Dict, List, Optional, Text, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from . import xdg
 
 # Monkeypatch ArgumentParser to not allow abbrevations as those will make it
 # hard to mix and match options on commandline, env and ini files
-argparse.ArgumentParser.__init__ = partialmethod(
-    argparse.ArgumentParser.__init__,
-    allow_abbrev=False)  # type: ignore
+argparse.ArgumentParser.__init__ = partialmethod(  # type: ignore
+    argparse.ArgumentParser.__init__, allow_abbrev=False
+)
 
 
 class SectionNotFound(Exception):
@@ -72,18 +81,18 @@ class NotSupported(Exception):
         Exception.__init__(self, *args)
 
 
-def find_default_ini(ini_id: Text, ini_filename: Text) -> Optional[Text]:
+def find_default_ini(ini_id: str, ini_filename: str) -> Optional[str]:
     """
     Look for default ini files in /etc and ~/.config
     """
 
     # Order to search for confiuration files
-    locations: List[Text] = [
+    locations: List[str] = [
         os.path.join(xdg.get_config_dir(ini_id), ini_filename),
-        "/etc/{}".format(ini_filename)
+        f"/etc/{ini_filename}",
     ]
 
-    ini_files: List[Text] = [loc for loc in locations if os.path.isfile(loc)]
+    ini_files: List[str] = [loc for loc in locations if os.path.isfile(loc)]
 
     if not ini_files:
         return None
@@ -92,9 +101,9 @@ def find_default_ini(ini_id: Text, ini_filename: Text) -> Optional[Text]:
         return f.read()
 
 
-def load_ini(config_id: Text,
-             config_name: Text,
-             opts: Optional[List] = None) -> Tuple[Optional[configparser.ConfigParser], List]:
+def load_ini(
+    config_id: str, config_name: str, opts: Optional[List[str]] = None
+) -> Tuple[Optional[configparser.ConfigParser], List[str]]:
     """
     return config, remainder_argv
 
@@ -103,11 +112,16 @@ def load_ini(config_id: Text,
         - /etc/<CONFIG_FILE_NAME>
     """
 
-    early_parser = argparse.ArgumentParser(description="configfile parser", add_help=False)
-    early_parser.add_argument('--config', dest='config',
-                              type=argparse.FileType('r', encoding='UTF-8'),
-                              default=None,
-                              help='change default configuration location')
+    early_parser = argparse.ArgumentParser(
+        description="configfile parser", add_help=False
+    )
+    early_parser.add_argument(
+        "--config",
+        dest="config",
+        type=argparse.FileType("r", encoding="UTF-8"),
+        default=None,
+        help="change default configuration location",
+    )
 
     args, remainder_argv = early_parser.parse_known_args(opts)
 
@@ -129,7 +143,7 @@ def load_ini(config_id: Text,
     return None, remainder_argv
 
 
-def get_env(key: Text) -> Dict:
+def get_env(key: str) -> Dict[str, str]:
     """
     Get environment variable based on key
     (uppercase and replace "-" with "_")
@@ -141,7 +155,7 @@ def get_env(key: Text) -> Dict:
     return {}
 
 
-def get_default(action: argparse.Action, section: Dict, key: Text) -> Any:
+def get_default(action: argparse.Action, section: Dict[str, Any], key: str) -> Any:
     """
     Find default value for an option. This will only be used if an
     argument is not specified at the command line. The defaults will
@@ -191,9 +205,9 @@ def get_default(action: argparse.Action, section: Dict, key: Text) -> Any:
 
 
 def all_defaults(
-        parser: argparse.ArgumentParser,
-        config: Dict) -> Dict:
-    """ Get defaults based on presedence """
+    parser: argparse.ArgumentParser, config: Dict[str, Any]
+) -> Dict[str, Any]:
+    """Get defaults based on presedence"""
 
     defaults = {}
 
@@ -203,10 +217,13 @@ def all_defaults(
     for g in parser._action_groups:
         for action in g._actions:
             if action.required:
-                raise NotSupported('"required" argument is not supported (found in option {}). '.format(
-                    "".join(action.option_strings)) + "Set to false and test after it has been parsed by handle_args()")
+                opt = "".join(action.option_strings)
+                raise NotSupported(
+                    f'"required" argument is not supported (found in option {opt}). '
+                    + "Set to false and test after it has been parsed by handle_args()"
+                )
             for option_string in action.option_strings:
-                if option_string.startswith('--'):
+                if option_string.startswith("--"):
                     key = option_string[2:]
 
                     defaults[action.dest] = get_default(action, config, key)
@@ -214,11 +231,13 @@ def all_defaults(
     return defaults
 
 
-def handle_args(parser: argparse.ArgumentParser,
-                config_id: Text,
-                config_name: Text,
-                section_name: Text,
-                opts: Optional[List] = None) -> argparse.Namespace:
+def handle_args(
+    parser: argparse.ArgumentParser,
+    config_id: str,
+    config_name: str,
+    section_name: str,
+    opts: Optional[List[str]] = None,
+) -> argparse.Namespace:
     """
     parses and sets up the command line argument system above
     with config file parsing.
