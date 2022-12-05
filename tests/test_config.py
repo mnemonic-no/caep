@@ -9,21 +9,23 @@ INI_TEST_FILE = os.path.join(os.path.dirname(__file__), "data/config_testdata.in
 
 def __argparser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser("test argparse", allow_abbrev=False)
-    parser.add_argument('--number', type=int, default=1)
-    parser.add_argument('--bool', action='store_true')
-    parser.add_argument('--str-arg')
+    parser.add_argument("--number", type=int, default=1)
+    parser.add_argument("--bool", action="store_true")
+    parser.add_argument("--str-arg")
 
     return parser
 
 
 def test_argparse_only() -> None:
-    """ all arguments from command line, using default for number and bool """
+    """all arguments from command line, using default for number and bool"""
 
     parser = __argparser()
 
     commandline = "--str-arg test".split()
 
-    args = config.handle_args(parser, "actworkers", "actworkers.ini", "test", opts=commandline)
+    args = config.handle_args(
+        parser, "actworkers", "actworkers.ini", "test", opts=commandline
+    )
 
     assert args.number == 1
     assert args.str_arg == "test"
@@ -31,12 +33,14 @@ def test_argparse_only() -> None:
 
 
 def test_argparse_ini() -> None:
-    """ all arguments from ini file """
+    """all arguments from ini file"""
     parser = __argparser()
 
-    commandline = "--config {}".format(INI_TEST_FILE).split()
+    commandline = f"--config {INI_TEST_FILE}".split()
 
-    args = config.handle_args(parser, "actworkers", "actworkers.ini", "test", opts=commandline)
+    args = config.handle_args(
+        parser, "actworkers", "actworkers.ini", "test", opts=commandline
+    )
 
     assert args.number == 3
     assert args.str_arg == "from ini"
@@ -44,13 +48,13 @@ def test_argparse_ini() -> None:
 
 
 def test_argparse_env() -> None:
-    """ all arguments from env """
+    """all arguments from env"""
     parser = __argparser()
 
     env = {
         "STR_ARG": "from env",
         "NUMBER": 4,
-        "BOOL": "yes"  # accepts both yes and true
+        "BOOL": "yes",  # accepts both yes and true
     }
 
     for key, value in env.items():
@@ -83,9 +87,11 @@ def test_argparse_env_ini() -> None:
     for key, value in env.items():
         os.environ[key] = str(value)
 
-    commandline = "--config {} --str-arg cmdline".format(INI_TEST_FILE).split()
+    commandline = f"--config {INI_TEST_FILE} --str-arg cmdline".split()
 
-    args = config.handle_args(parser, "actworkers", "actworkers.ini", "test", opts=commandline)
+    args = config.handle_args(
+        parser, "actworkers", "actworkers.ini", "test", opts=commandline
+    )
 
     assert args.number == 4
     assert args.str_arg == "cmdline"
