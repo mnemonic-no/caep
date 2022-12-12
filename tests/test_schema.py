@@ -6,6 +6,7 @@ import pytest
 from pydantic import BaseModel, Field, ValidationError
 
 import caep
+from caep.schema import escape_split
 
 INI_TEST_FILE = os.path.join(os.path.dirname(__file__), "data/config_testdata.ini")
 
@@ -54,6 +55,15 @@ def test_schema_commandline() -> None:
     assert config.number == 1
     assert config.str_arg == "test"
     assert not config.enabled
+
+
+def test_schema_commandline_escaped_list() -> None:
+    """all arguments from command line, using default for number and bool"""
+    commandline = "--str-arg test --strlist 'A\\,B\\,C,1\\,2\\,3'".split()
+
+    config = parse_args(commandline)
+
+    assert config.strlist == ["'A\\,B\\,C", "1\\,2\\,3'"]
 
 
 def test_schema_commandline_missing_required_raise() -> None:
@@ -129,3 +139,10 @@ def test_argparse_env_ini() -> None:
     # Remove from environment variables
     for key in env:
         del os.environ[key]
+
+
+def test_escape_split() -> None:
+
+    assert escape_split("A\\,B\\,C,1\\,2\\,3", ",") == ["A,B,C", "1,2,3"]
+    assert escape_split("ABC 123") == ["ABC", "123"]
+    assert escape_split("A\\\\BC 123") == ["A\\BC", "123"]
