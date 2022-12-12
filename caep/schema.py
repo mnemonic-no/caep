@@ -69,7 +69,7 @@ def split_lists(args: argparse.Namespace, arrays: Arrays) -> Dict[str, Any]:
                 split = arrays[field].split
 
                 # Split by configured split value, unless it is escaped
-                value = [array_type(v) for v in re.split(rf"(?<!\\){split}", value)]
+                value = [array_type(v) for v in escape_split(value, split)]
 
         args_with_list_split[field] = value
 

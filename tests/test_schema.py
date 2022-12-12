@@ -63,7 +63,7 @@ def test_schema_commandline_escaped_list() -> None:
 
     config = parse_args(commandline)
 
-    assert config.strlist == ["'A\\,B\\,C", "1\\,2\\,3'"]
+    assert config.strlist == ["'A,B,C", "1,2,3'"]
 
 
 def test_schema_commandline_missing_required_raise() -> None:
