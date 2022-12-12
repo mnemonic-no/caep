@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "caep"
+version = "1.0.0"
+description = "Config Argument Env Parser (CAEP)"
+authors = ["mnemonic AS <opensource@mnemonic.no>"]
+keywords = ["mnemonic"]
+readme = "README.md"
+homepage = "https://github.com/mnemonic-no/caep"
+repository = "https://github.com/mnemonic-no/caep"
+license = "ISC"
+classifiers=[
+    "Development Status :: 4 - Beta",
+    "Topic :: Utilities",
+    "License :: OSI Approved :: ISC License (ISCL)",
+]
+
+[tool.poetry.dependencies]
+python = "^3.6.2"
+pydantic= "^1.8.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "*"
+
+[tool.isort]
+profile = "black"
+
+[tool.mypy]
+strict = true
+ignore_missing_imports = true
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
