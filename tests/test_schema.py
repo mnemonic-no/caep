@@ -2,7 +2,8 @@
 import os
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
+import pytest
+from pydantic import BaseModel, Field, ValidationError
 
 import caep
 
@@ -31,14 +32,16 @@ def parse_args(
     config_id: str = "config_id",
     config_filename: str = "config_filename",
     section_name: str = "test",
+    raise_on_validation_error: bool = False,
 ) -> Arguments:
-    return caep.parse(
+    return caep.load(
         Arguments,
         description,
         config_id,
         config_filename,
         section_name,
         opts=commandline,
+        raise_on_validation_error=raise_on_validation_error,
     )
 
 
@@ -51,6 +54,20 @@ def test_schema_commandline() -> None:
     assert config.number == 1
     assert config.str_arg == "test"
     assert not config.enabled
+
+
+def test_schema_commandline_missing_required_raise() -> None:
+    """missing required string argument and raise error"""
+
+    with pytest.raises(ValidationError):
+        parse_args(raise_on_validation_error=True)
+
+
+def test_schema_commandline_missing_required_print() -> None:
+    """missing required string argument - print usage"""
+
+    with pytest.raises(SystemExit):
+        parse_args()
 
 
 def test_schema_ini() -> None:

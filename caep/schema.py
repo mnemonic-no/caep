@@ -2,9 +2,10 @@
 
 
 import argparse
-from typing import Dict, List, Optional, Type, TypeVar
+import sys
+from typing import Dict, List, Optional, Type, TypeVar, cast
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 import caep
 
@@ -28,7 +29,7 @@ class FieldError(Exception):
     pass
 
 
-def parse(
+def load(
     model: Type[BaseModelType],
     description: str,
     config_id: str,
@@ -36,6 +37,8 @@ def parse(
     section_name: str,
     alias: bool = False,
     opts: Optional[List[str]] = None,
+    raise_on_validation_error: bool = False,
+    exit_on_validation_error: bool = True,
 ) -> BaseModelType:
 
     """
@@ -108,4 +111,23 @@ def parse(
 
         args[field] = value
 
-    return model(**args)
+    try:
+        return model(**args)
+    except ValidationError as e:
+        if raise_on_validation_error:
+            raise
+        else:
+
+            # ValidationError(model='Arguments',
+            #                  errors=[{'loc': ('str_arg',),
+            #                          'msg': 'none is not an allowed value',
+            #                          'type': 'type_error.none.not_allowed'}])
+
+            for error in e.errors():
+                argument = cast(str, error.get("loc", [])[0]).replace("_", "-")
+                msg = error.get("msg")
+
+                print(f"{msg} for --{argument}\n")
+
+            parser.print_help()
+            sys.exit(1)
