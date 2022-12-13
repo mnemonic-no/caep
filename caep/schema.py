@@ -116,11 +116,25 @@ def build_parser(
 
             field_type = TYPE_MAPPING[schema["type"]]
 
+        parser_args: Dict[str, Any] = {}
+
+        if field_type == bool:
+            if schema.get("default") is False:
+                parser_args["action"] = "store_true"
+            elif schema.get("default") is True:
+                parser_args["action"] = "store_false"
+            else:
+                raise FieldError(
+                    f"bools without defaults are not supported {field}: {schema}"
+                )
+        else:
+            parser_args = {"type": field_type}
+
         parser.add_argument(
             f"--{field}",
             help=schema.get("description", "No help provided"),
-            type=field_type,
             default=schema.get("default"),
+            **parser_args,
         )
 
     return parser, arrays
