@@ -82,7 +82,9 @@ def split_lists(args: argparse.Namespace, arrays: Arrays) -> Dict[str, Any]:
 
 
 def build_parser(
-    fields: Dict[str, Dict[str, Any]], description: str
+    fields: Dict[str, Dict[str, Any]],
+    description: str,
+    epilog: Optional[str],
 ) -> Tuple[argparse.ArgumentParser, Arrays]:
 
     """
@@ -96,7 +98,16 @@ def build_parser(
     # Map of all fields that are defined as arrays
     arrays: Arrays = {}
 
-    parser = argparse.ArgumentParser(description)
+    # Add epilog to --help output
+    if epilog:
+        parser = argparse.ArgumentParser(
+            description,
+            epilog=epilog,
+            formatter_class=argparse.RawDescriptionHelpFormatter,
+        )
+    else:
+
+        parser = argparse.ArgumentParser(description)
 
     # Example data structure for pydantic fields
     # {
@@ -194,6 +205,7 @@ def load(
     opts: Optional[List[str]] = None,
     raise_on_validation_error: bool = False,
     exit_on_validation_error: bool = True,
+    epilog: Optional[str] = None,
 ) -> BaseModelType:
 
     """
@@ -212,6 +224,7 @@ def load(
                                           testing command line options)
         raise_on_validation_error: bool - Reraise validation errors from pydantic
         exit_on_validation_error: bool  - Exit and print help on validation error
+        epilog: str                     - Add epilog text to --help output
 
     Returns parsed model
 
@@ -224,7 +237,7 @@ def load(
         raise SchemaError(f"Unable to get properties from schema {model}")
 
     # Build argument parser based on pydantic fields
-    parser, arrays = build_parser(fields, description)
+    parser, arrays = build_parser(fields, description, epilog)
 
     args = split_lists(
         args=caep.config.handle_args(
