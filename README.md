@@ -71,7 +71,8 @@ List of strings, split by specified character (default = space, argument=`split`
 
 Some examples:
 
-||Field||Input||Schema||
+| Field                                              | Input   | Schema       |
+| -                                                  | -       | -            |
 | `List[int] = Field(description="Ints")`            | `1 2`   | [1, 2]       |
 | `List[str] = Field(description="Strs", split=",")` | `ab,bc` | ["ab", "bc"] |
 
