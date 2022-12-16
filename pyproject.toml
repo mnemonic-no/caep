@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "caep"
-version = "1.0.0"
+version = "0.1.0"
 description = "Config Argument Env Parser (CAEP)"
 authors = ["mnemonic AS <opensource@mnemonic.no>"]
 keywords = ["mnemonic"]

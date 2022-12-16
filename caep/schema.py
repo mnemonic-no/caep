@@ -41,6 +41,10 @@ Arrays = Dict[str, ArrayInfo]
 
 
 def escape_split(value: str, split: str = DEFAULT_SPLIT) -> List[str]:
+    """
+    Helper method to split on specified field
+    (unless field is escaped with backslash)
+    """
 
     return [re.sub(r"(?<!\\)\\", "", v) for v in re.split(rf"(?<!\\){split}", value)]
 
@@ -58,6 +62,7 @@ def split_lists(args: argparse.Namespace, arrays: Arrays) -> Dict[str, Any]:
                                        and ArrayInfo (type + split) as value
     """
     args_with_list_split = {}
+
     for field, value in vars(args).items():
 
         if field in arrays:
@@ -80,10 +85,49 @@ def build_parser(
     fields: Dict[str, Dict[str, Any]], description: str
 ) -> Tuple[argparse.ArgumentParser, Arrays]:
 
+    """
+
+    Build argument parser based on pydantic fields
+
+    Return ArgumentParser and fields that are defined as arrays
+
+    """
+
     # Map of all fields that are defined as arrays
     arrays: Arrays = {}
 
     parser = argparse.ArgumentParser(description)
+
+    # Example data structure for pydantic fields
+    # {
+    #   "enabled": {
+    # 	    "default": false,
+    # 	    "description": "Boolean with default value",
+    # 	    "title": "Enabled",
+    # 	    "type": "boolean"
+    #   },
+    #   "flag1": {
+    # 	    "default": true,
+    # 	    "description": "Boolean with default value",
+    # 	    "title": "Flag1",
+    # 	    "type": "boolean"
+    #   },
+    #   "str_arg": {
+    # 	    "description": "Required String Argument",
+    # 	    "title": "Str Arg",
+    # 	    "type": "string"
+    #   },
+    #   "strlist": {
+    # 	    "description": "Comma separated list of strings",
+    # 	    "items": {
+    # 	          "type": "string"
+    # 	    },
+    # 	    "split": ",",
+    # 	    "title": "Strlist",
+    # 	    "type": "array"
+    #   },
+    # }
+    #
 
     # Loop over all pydantic schema fields
     for field, schema in fields.items():
@@ -104,8 +148,8 @@ def build_parser(
                 array_type=array_type, split=schema.get("split", DEFAULT_SPLIT)
             )
 
-            # For arrays (lists), we parse as str in caep and split values by configured
-            # split value later
+            # For arrays (lists, sets etc), we parse as str in caep and split values by
+            # configured split value later
             field_type = str
         else:
 
@@ -154,7 +198,22 @@ def load(
 
     """
 
-    TODO - document parameters
+    Load ceap config as derived from pydantic model
+
+    Arguments:
+
+        model: BaseModelType            - Pydantic Model
+        description: str                - Argparse description to show on --help
+        config_id                       - CAEP config id
+        config_file_name                - CAEP config file name
+        section_name: str               - CAEP section name from config
+        alias: bool                     - Use alias for pydantic schema
+        opts: Optional[List[str]]       - Send option to caep (usefull for
+                                          testing command line options)
+        raise_on_validation_error: bool - Reraise validation errors from pydantic
+        exit_on_validation_error: bool  - Exit and print help on validation error
+
+    Returns parsed model
 
     """
 
@@ -164,6 +223,7 @@ def load(
     if not fields:
         raise SchemaError(f"Unable to get properties from schema {model}")
 
+    # Build argument parser based on pydantic fields
     parser, arrays = build_parser(fields, description)
 
     args = split_lists(

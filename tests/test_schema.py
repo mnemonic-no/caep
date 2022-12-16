@@ -1,5 +1,6 @@
 """ test config """
 import os
+import shlex
 from typing import List, Optional, Set, Type
 
 import pytest
@@ -27,7 +28,7 @@ class Arguments(BaseModel):
     # Can optionally use "split" argument to use another value to split based on
     strlist: List[str] = Field(description="Comma separated list of strings", split=",")
 
-    # List fields will be separated by space as default
+    # Set that will be separated by space (default)
     strset: Set[str] = Field(description="Space separated set of strings")
 
 
@@ -82,15 +83,15 @@ def test_schema_commandline() -> None:
 
 def test_schema_commandline_strset() -> None:
     """disable flag that is default True"""
-    commandline = "--str-arg test --strset 'abc abc abc'".split()
+    commandline = shlex.split("--str-arg test --strset 'abc abc abc'")
 
     config = parse_args(Arguments, commandline)
-    assert config.strset == set("abc")
+    assert config.strset == set(("abc",))
 
 
 def test_schema_commandline_disable_bool() -> None:
     """disable flag that is default True"""
-    commandline = "--str-arg test --flag1".split()
+    commandline = shlex.split("--str-arg test --flag1")
 
     config = parse_args(Arguments, commandline)
     assert config.flag1 is False
@@ -98,11 +99,11 @@ def test_schema_commandline_disable_bool() -> None:
 
 def test_schema_commandline_escaped_list() -> None:
     """escape splits"""
-    commandline = r"--str-arg test --strlist 'A\,B\,C,1\,2\,3'".split()
+    commandline = shlex.split(r"--str-arg test --strlist 'A\,B\,C,1\,2\,3'")
 
     config = parse_args(Arguments, commandline)
 
-    assert config.strlist == ["'A,B,C", "1,2,3'"]
+    assert config.strlist == ["A,B,C", "1,2,3"]
 
 
 def test_schema_commandline_missing_required_raise() -> None:
@@ -121,7 +122,7 @@ def test_schema_commandline_missing_required_print() -> None:
 
 def test_schema_ini() -> None:
     """all arguments from ini file"""
-    commandline = f"--config {INI_TEST_FILE}".split()
+    commandline = shlex.split(f"--config {INI_TEST_FILE}")
 
     config = parse_args(Arguments, commandline, section_name="test")
 
@@ -168,7 +169,7 @@ def test_argparse_env_ini() -> None:
     for key, value in env.items():
         os.environ[key] = str(value)
 
-    commandline = f"--config {INI_TEST_FILE} --str-arg cmdline".split()
+    commandline = shlex.split(f"--config {INI_TEST_FILE} --str-arg cmdline")
 
     config = parse_args(Arguments, commandline, section_name="test")
 
@@ -183,7 +184,7 @@ def test_argparse_env_ini() -> None:
 
 def test_schema_joined_schemas() -> None:
     """Test schema that is created based on three other schemas"""
-    commandline = "--str-arg arg1 --number 10 --enabled".split()
+    commandline = shlex.split("--str-arg arg1 --number 10 --enabled")
 
     config = parse_args(ArgCombined, commandline)
 
@@ -196,6 +197,6 @@ def test_escape_split() -> None:
 
     assert escape_split("A\\,B\\,C,1\\,2\\,3", ",") == ["A,B,C", "1,2,3"]
     assert escape_split("ABC 123") == ["ABC", "123"]
-    assert escape_split("A\\\\BC 123") == ["A\\BC", "123"]
 
     # Escaped slash
+    assert escape_split("A\\\\BC 123") == ["A\\BC", "123"]

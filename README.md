@@ -1,14 +1,83 @@
 # CAEP
 
-config module, supports loading config from ini, environment and arguments
+Configuration library that supports loading configuration from ini, environment variables
+and arguments into a [pydantic](https://docs.pydantic.dev/) schema.
 
-The configuration presedence are (from lowest to highest):
-* argparse default
-* ini file
-* environment variable
-* command line argument
+With the pydantic schema you will have a fully typed configuration object that is parsed
+at load time.
 
-# Config
+# Example
+
+```python
+#!/usr/bin/env python3
+from typing import List
+
+from pydantic import BaseModel, Field
+
+import caep
+
+
+class Config(BaseModel):
+
+    text: str = Field(description="Required String Argument")
+    number: int = Field(default=1, description="Integer with default value")
+    switch: bool = Field(default=False, description="Boolean with default value")
+    intlist: List[int] = Field(description="Space separated list of ints")
+
+
+# Config/section options below will only be used if loading configuration
+# from ini file (under ~/.config)
+config = caep.load(
+    Config,
+    "CAEP Example",
+    "caep",  # Find .ini file under ~/.config/caep
+    "caep.ini",  # Find .ini file name caep.ini
+    "section",  # Load settings from [section] (default to [DEFATULT]
+)
+
+print(config)
+```
+
+Sample output with a `intlist` read from environment and `switch` from command line:
+
+```bash
+$ export INTLIST="1 2 3"
+$ ./example.py --text "My value" --switch
+text='My value' number=1 switch=True intlist=[1, 2, 3]
+```
+
+# Pydantic field types
+
+Pydantic fields should be defined using `Field` and include the `description` parameter
+to specify help text for the commandline.
+
+Supported/tested types:
+
+### `str`
+
+Standard string argument.
+
+### `int`
+
+Values parsed as integer.
+
+### `float`
+
+Value parsed as float.
+
+### `List[str]` (`list[str]` for python >= 3.9)
+
+List of strings, split by specified character (default = space, argument=`split`).
+
+Some examples:
+
+||Field||Input||Schema||
+| `List[int] = Field(description="Ints")`            | `1 2`   | [1, 2]       |
+| `List[str] = Field(description="Strs", split=",")` | `ab,bc` | ["ab", "bc"] |
+
+TODO
+
+# Configuration
 
 Arguments are parsed in two phases. First, it will look for the argument `--config`
 which can be used to specify an alternative location for the ini file. If not `--config` argument
@@ -31,7 +100,22 @@ variables:
 - $BOOL
 - $STR_ARG
 
-Example:
+The configuration presedence are (from lowest to highest):
+* argparse default
+* ini file
+* environment variable
+* command line argument
+
+## Validation
+
+## XDG
+
+TODO
+
+## Legacy usage
+
+Prior to version `0.1.0` the recommend usage was to add parser objects manually. This is
+still supported, but with this approac you will not get the validation from pydantic:
 
 ```python
 >>> import caep
