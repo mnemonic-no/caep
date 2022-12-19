@@ -22,7 +22,7 @@ class Config(BaseModel):
     text: str = Field(description="Required String Argument")
     number: int = Field(default=1, description="Integer with default value")
     switch: bool = Field(default=False, description="Boolean with default value")
-    intlist: List[int] = Field(description="Space separated list of ints")
+    intlist: List[int] = Field(description="Space separated list of ints", split=" ")
 
 
 # Config/section options below will only be used if loading configuration
@@ -85,25 +85,38 @@ to flip the value. Examples:
 
 ### `List[str]` (`list[str]` for python >= 3.9)
 
-List of strings, split by specified character (default = space, argument=`split`).
+List of strings, split by specified character (default = comma, argument=`split`).
 
 Some examples:
 
 | Field                                              | Input   | Configuration |
 | -                                                  | -       | -             |
-| `List[int] = Field(description="Ints")`            | `1 2`   | [1, 2]        |
-| `List[str] = Field(description="Strs", split=",")` | `ab,bc` | ["ab", "bc"]  |
+| `List[int] = Field(description="Ints", split=" ")` | `1 2`   | [1, 2]        |
+| `List[str] = Field(description="Strs")`            | `ab,bc` | ["ab", "bc"]  |
 
 ### `Set[str]` (`set[str]` for python >= 3.9)
 
-Set, split by specified character (default = space, argument=`split`).
+Set, split by specified character (default = comma, argument=`split`).
 
 Some examples:
 
 | Field                                             | Input      | Configuration |
 | -                                                 | -          | -             |
-| `Set[int] = Field(description="Ints")`            | `1 2 2`    | {1, 2}        |
-| `Set[str] = Field(description="Strs", split=",")` | `ab,ab,xy` | {"ab", "xy"}  |
+| `Set[int] = Field(description="Ints", split=" ")` | `1 2 2`    | {1, 2}        |
+| `Set[str] = Field(description="Strs")`            | `ab,ab,xy` | {"ab", "xy"}  |
+
+### `Dict[str, <TYPE>]` (`dict[str, <TYPE>]` for python >= 3.9)
+
+Dictioray of strings, split by specified character (default = comma, argument=`split` for
+splitting items and colon for splitting key/value).
+
+Some examples:
+
+| Field                                                | Input                | Configuration            |
+| -                                                    | -                    | -                        |
+| `Dict[str, str] = Field(description="Dict")`         | `x:a,y:b`            | {"x": "a", "y": "b"}     |
+| `Dict[str, int] = Field(description="Dict of ints")` | `a b c:1, d e f:2`   | {"a b c": 1, "d e f": 2} |
+
 
 # Configuration
 

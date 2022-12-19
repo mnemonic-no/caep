@@ -1,13 +1,20 @@
 """ test config """
 import os
 import shlex
-from typing import List, Optional, Set, Type
+from typing import Dict, List, Optional, Set, Type
 
 import pytest
 from pydantic import BaseModel, Field, ValidationError
 
 import caep
-from caep.schema import escape_split
+from caep.schema import (
+    ArrayInfo,
+    DictInfo,
+    FieldError,
+    escape_split,
+    split_dict,
+    split_list,
+)
 
 INI_TEST_FILE = os.path.join(os.path.dirname(__file__), "data/config_testdata.ini")
 
@@ -23,13 +30,19 @@ class Arguments(BaseModel):
     float_arg: float = Field(default=0.5, description="Float with default value")
 
     # List fields will be separated by space as default
-    intlist: List[int] = Field(description="Space separated list of ints")
+    intlist: List[int] = Field(description="Space separated list of ints", split=" ")
 
     # Can optionally use "split" argument to use another value to split based on
-    strlist: List[str] = Field(description="Comma separated list of strings", split=",")
+    strlist: List[str] = Field(description="Comma separated list of strings")
 
     # Set that will be separated by space (default)
-    strset: Set[str] = Field(description="Space separated set of strings")
+    strset: Set[str] = Field(description="Space separated set of strings", split=" ")
+
+    dict_str: Dict[str, str] = Field(description="Str Dict split by comma and colon")
+
+    dict_int: Dict[str, int] = Field(
+        description="Int Dict split by slash and dash", split="-", kv_split="/"
+    )
 
 
 class Arg1(BaseModel):
@@ -87,6 +100,40 @@ def test_schema_commandline_strset() -> None:
 
     config = parse_args(Arguments, commandline)
     assert config.strset == set(("abc",))
+
+
+def test_schema_commandline_dict_str() -> None:
+    """Dict strings"""
+    commandline = shlex.split(
+        "--str-arg test --dict-str 'header 1: x option, header 2: y option'"
+    )
+
+    config = parse_args(Arguments, commandline)
+
+    dict_str = config.dict_str
+
+    assert dict_str is not None
+    assert dict_str is not {}
+
+    assert dict_str["header 1"] == "x option"
+    assert dict_str["header 2"] == "y option"
+
+
+def test_schema_commandline_dict_int() -> None:
+    """Dict strings"""
+    commandline = shlex.split("--str-arg test --dict-int 'a/1-b/2'")
+
+    config = parse_args(Arguments, commandline)
+
+    dict_int = config.dict_int
+
+    assert dict_int is not None
+    assert dict_int is not {}
+
+    print(dict_int)
+
+    assert dict_int["a"] == 1
+    assert dict_int["b"] == 2
 
 
 def test_schema_commandline_disable_bool() -> None:
@@ -195,8 +242,30 @@ def test_schema_joined_schemas() -> None:
 
 def test_escape_split() -> None:
 
-    assert escape_split("A\\,B\\,C,1\\,2\\,3", ",") == ["A,B,C", "1,2,3"]
-    assert escape_split("ABC 123") == ["ABC", "123"]
+    assert escape_split("A\\,B\\,C,1\\,2\\,3") == ["A,B,C", "1,2,3"]
+    assert escape_split("ABC 123", split=" ") == ["ABC", "123"]
 
     # Escaped slash
-    assert escape_split("A\\\\BC 123") == ["A\\BC", "123"]
+    assert escape_split("A\\\\BC 123", split=" ") == ["A\\BC", "123"]
+
+
+def test_split_list() -> None:
+
+    # Default split = ","
+    assert split_list("a,b,c", ArrayInfo(array_type=str))
+
+    # Configure split value
+    assert split_list("a b c", ArrayInfo(array_type=str, split=" "))
+
+
+def test_split_dict() -> None:
+
+    # Defaults
+    d = split_dict("a:b,b:c,c: value X", DictInfo(dict_type=str))
+
+    assert d is not None
+
+    assert d["c"] == "value X"
+
+    with pytest.raises(FieldError):
+        split_dict("a,b", DictInfo(dict_type=str))
