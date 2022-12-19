@@ -10,7 +10,7 @@ class Config(BaseModel):
 
     text: str = Field(description="Required String Argument")
     number: int = Field(default=1, description="Integer with default value")
-    switch: bool = Field(default=False, description="Boolean with default value")
+    switch: bool = Field(description="Boolean with default value")
     intlist: List[int] = Field(description="Space separated list of ints", split=" ")
 
 

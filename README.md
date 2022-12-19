@@ -21,7 +21,7 @@ class Config(BaseModel):
 
     text: str = Field(description="Required String Argument")
     number: int = Field(default=1, description="Integer with default value")
-    switch: bool = Field(default=False, description="Boolean with default value")
+    switch: bool = Field(description="Boolean with default value")
     intlist: List[int] = Field(description="Space separated list of ints", split=" ")
 
 
@@ -70,13 +70,13 @@ Value parsed as float.
 
 ### `bool`
 
-Value parsed as booleans. Booleans *must* have a default value, and you can use the configuration
-to flip the value. Examples:
+Value parsed as booleans. Booleans will default to False, if no default value is set.
+Examples:
 
 
 | Field                                                      | Input     | Configuration |
 | -                                                          | -         | -             |
-| `enable: bool = Field(value=False, description="Enable")`  | <NOT SET> | False         |
+| `enable: bool = Field(description="Enable")`               | <NOT SET> | False         |
 | `enable: bool = Field(value=False, description="Enable")`  | `yes`     | True          |
 | `enable: bool = Field(value=False, description="Enable")`  | `true`    | True          |
 | `disable: bool = Field(value=True, description="Disable")` | <NOT SET> | True          |

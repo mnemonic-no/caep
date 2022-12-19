@@ -63,7 +63,7 @@ def escape_split(
     ]
 
 
-def split_dict(value: Optional[str], dict_info: DictInfo) -> Dict[str, str]:
+def split_dict(value: Optional[str], dict_info: DictInfo) -> Dict[str, Any]:
     """
     Split string into dictionary
 
@@ -76,7 +76,7 @@ def split_dict(value: Optional[str], dict_info: DictInfo) -> Dict[str, str]:
     if value is None or not value.strip():
         return {}
 
-    d: Dict[str, str] = {}
+    d: Dict[str, Any] = {}
 
     # Split on specified field, unless they are escaped
     for items in escape_split(value, dict_info.split):
@@ -105,7 +105,7 @@ def split_list(value: str, array: ArrayInfo) -> List[Any]:
         return []
 
     # Split by configured split value, unless it is escaped
-    return [array.array_type(v).strip() for v in escape_split(value, array.split)]
+    return [array.array_type(v.strip()) for v in escape_split(value, array.split)]
 
 
 def split_arguments(
@@ -213,6 +213,7 @@ def build_parser(
         # for lists, dicts and sets we will use the default (str), but
         # for other types we will raise an error if field_type is not specified
         field_type: type = str
+        default = schema.get("default")
 
         if schema["type"] == "array":
             array_type = TYPE_MAPPING.get(schema["items"]["type"])
@@ -256,13 +257,17 @@ def build_parser(
         parser_args: Dict[str, Any] = {}
 
         if field_type == bool:
-            if schema.get("default") is False:
+            if default in (False, None):
                 parser_args["action"] = "store_true"
-            elif schema.get("default") is True:
+
+                # Explicit set default value as False
+                if default is None:
+                    default = False
+            elif default is True:
                 parser_args["action"] = "store_false"
             else:
                 raise FieldError(
-                    f"bools without defaults are not supported {field}: {schema}"
+                    f"bools only support defaults of False/None/True {field}: {schema}"
                 )
         else:
             parser_args = {"type": field_type}
@@ -270,7 +275,7 @@ def build_parser(
         parser.add_argument(
             f"--{field.replace('_', '-')}",
             help=schema.get("description", "No help provided"),
-            default=schema.get("default"),
+            default=default,
             **parser_args,
         )
 
