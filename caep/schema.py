@@ -143,7 +143,7 @@ def build_parser(
     fields: Dict[str, Dict[str, Any]],
     description: str,
     epilog: Optional[str],
-) -> Tuple[argparse.ArgumentParser, Arrays]:
+) -> Tuple[argparse.ArgumentParser, Arrays, Dicts]:
     """
 
     Build argument parser based on pydantic fields
@@ -319,11 +319,7 @@ def load(
         raise SchemaError(f"Unable to get properties from schema {model}")
 
     # Build argument parser based on pydantic fields
-<<<<<<< HEAD
-    parser, arrays = build_parser(fields, description, epilog)
-=======
-    parser, arrays, dicts = build_parser(fields, description)
->>>>>>> bf7a5e8 (support dicts)
+    parser, arrays, dicts = build_parser(fields, description, epilog)
 
     args = split_arguments(
         args=caep.config.handle_args(
