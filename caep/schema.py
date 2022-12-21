@@ -37,12 +37,14 @@ class FieldError(Exception):
 class ArrayInfo(BaseModel):
     array_type: type
     split: str = DEFAULT_SPLIT
+    min_size: int = 0
 
 
 class DictInfo(BaseModel):
     dict_type: type
     split: str = DEFAULT_SPLIT
     kv_split: str = DEFAULT_KV_SPLIT
+    min_size: int = 0
 
 
 Arrays = Dict[str, ArrayInfo]
@@ -63,7 +65,9 @@ def escape_split(
     ]
 
 
-def split_dict(value: Optional[str], dict_info: DictInfo) -> Dict[str, Any]:
+def split_dict(
+    value: Optional[str], dict_info: DictInfo, field: Optional[str] = None
+) -> Dict[str, Any]:
     """
     Split string into dictionary
 
@@ -73,26 +77,32 @@ def split_dict(value: Optional[str], dict_info: DictInfo) -> Dict[str, Any]:
                           and the value to split items and
                           key/values on
     """
-    if value is None or not value.strip():
-        return {}
-
     d: Dict[str, Any] = {}
 
-    # Split on specified field, unless they are escaped
-    for items in escape_split(value, dict_info.split):
+    if value is None or not value.strip():
+        d = {}
 
-        try:
-            # Split key val on first occurence of specified split value
-            key, val = escape_split(items, dict_info.kv_split, maxsplit=2)
-        except ValueError:
-            raise FieldError(f"Unable to split {items} by `{dict_info.kv_split}`")
+    else:
+        # Split on specified field, unless they are escaped
+        for items in escape_split(value, dict_info.split):
 
-        d[key.strip()] = dict_info.dict_type(val.strip())
+            try:
+                # Split key val on first occurence of specified split value
+                key, val = escape_split(items, dict_info.kv_split, maxsplit=2)
+            except ValueError:
+                raise FieldError(f"Unable to split {items} by `{dict_info.kv_split}`")
+
+            d[key.strip()] = dict_info.dict_type(val.strip())
+
+    if len(d.keys()) < dict_info.min_size:
+        raise FieldError(
+            f"{field} have to few elements {len(d)} < {dict_info.min_size}"
+        )
 
     return d
 
 
-def split_list(value: str, array: ArrayInfo) -> List[Any]:
+def split_list(value: str, array: ArrayInfo, field: Optional[str] = None) -> List[Any]:
     """
     Split string into list
 
@@ -102,10 +112,15 @@ def split_list(value: str, array: ArrayInfo) -> List[Any]:
                            and the value to split on
     """
     if value is None or not value.strip():
-        return []
+        lst = []
+    else:
+        # Split by configured split value, unless it is escaped
+        lst = [array.array_type(v.strip()) for v in escape_split(value, array.split)]
 
-    # Split by configured split value, unless it is escaped
-    return [array.array_type(v.strip()) for v in escape_split(value, array.split)]
+    if len(lst) < array.min_size:
+        raise FieldError(f"{field} have to few elements {len(lst)} < {array.min_size}")
+
+    return lst
 
 
 def split_arguments(
@@ -129,10 +144,10 @@ def split_arguments(
     for field, value in vars(args).items():
 
         if field in arrays:
-            value = split_list(value, arrays[field])
+            value = split_list(value, arrays[field], field)
 
         elif field in dicts:
-            value = split_dict(value, dicts[field])
+            value = split_dict(value, dicts[field], field)
 
         args_with_list_split[field] = value
 
@@ -168,7 +183,7 @@ def build_parser(
     else:
         parser = argparse.ArgumentParser(description)
 
-    # Example data structure for pydantic fields
+    # Example internal data structure for pydantic fields that we parse
     # {
     #   "enabled": {
     # 	    "default": false,
@@ -215,6 +230,12 @@ def build_parser(
         field_type: type = str
         default = schema.get("default")
 
+        if "type" not in schema:
+            raise FieldError(
+                "No type specified, recursive models are not supported: "
+                f"{field}: {schema}"
+            )
+
         if schema["type"] == "array":
             array_type = TYPE_MAPPING.get(schema["items"]["type"])
 
@@ -224,7 +245,9 @@ def build_parser(
                 )
 
             arrays[field] = ArrayInfo(
-                array_type=array_type, split=schema.get("split", DEFAULT_SPLIT)
+                array_type=array_type,
+                split=schema.get("split", DEFAULT_SPLIT),
+                min_size=schema.get("min_size", 0),
             )
 
             # For arrays (lists, sets etc), we parse as str in caep and split values by
@@ -243,6 +266,7 @@ def build_parser(
                 dict_type=dict_type,
                 split=schema.get("split", DEFAULT_SPLIT),
                 kv_split=schema.get("kv_split", DEFAULT_KV_SPLIT),
+                min_size=schema.get("min_size", 0),
             )
 
         else:

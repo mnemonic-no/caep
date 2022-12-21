@@ -54,7 +54,11 @@ to specify help text for the commandline.
 Unless the `Field` has a `default` value, it is a required field that needs to be
 specified in the environment, configuration file or on the command line.
 
-Supported/tested types:
+Many of the types described in [https://docs.pydantic.dev/usage/types/](https://docs.pydantic.dev/usage/types/)
+should be supported, but not all of them are tested. However,  nested schemas
+are *not* supported.
+
+Tested types:
 
 ### `str`
 
@@ -67,6 +71,18 @@ Values parsed as integer.
 ### `float`
 
 Value parsed as float.
+
+### `pathlib.Path`
+
+Value parsed as Path.
+
+### `ipaddress.IPv4Address`
+
+Values parsed and validated as IPv4Address.
+
+### `ipaddress.IPv4Network`
+
+Values parsed and validated as IPv4Network.
 
 ### `bool`
 
@@ -94,6 +110,12 @@ Some examples:
 | `List[int] = Field(description="Ints", split=" ")` | `1 2`   | [1, 2]        |
 | `List[str] = Field(description="Strs")`            | `ab,bc` | ["ab", "bc"]  |
 
+The argument `min_size` can be used to specify the minimum size of the list:
+
+| Field                                               | Input | Configuration     |
+| -                                                   | -     | -                 |
+| `List[str] = Field(description="Strs", min_size=1)` | ``    | Raises FieldError |
+
 ### `Set[str]` (`set[str]` for python >= 3.9)
 
 Set, split by specified character (default = comma, argument=`split`).
@@ -104,6 +126,13 @@ Some examples:
 | -                                                 | -          | -             |
 | `Set[int] = Field(description="Ints", split=" ")` | `1 2 2`    | {1, 2}        |
 | `Set[str] = Field(description="Strs")`            | `ab,ab,xy` | {"ab", "xy"}  |
+
+The argument `min_size` can be used to specify the minimum size of the set:
+
+| Field                                               | Input | Configuration     |
+| -                                                   | -     | -                 |
+| `Set[str] = Field(description="Strs", min_size=1)`  | ``    | Raises FieldError |
+
 
 ### `Dict[str, <TYPE>]` (`dict[str, <TYPE>]` for python >= 3.9)
 
@@ -116,6 +145,12 @@ Some examples:
 | -                                                    | -                    | -                        |
 | `Dict[str, str] = Field(description="Dict")`         | `x:a,y:b`            | {"x": "a", "y": "b"}     |
 | `Dict[str, int] = Field(description="Dict of ints")` | `a b c:1, d e f:2`   | {"a b c": 1, "d e f": 2} |
+
+The argument `min_size` can be used to specify the minimum numer of keys in the dictionary:
+
+| Field                                                    | Input | Configuration     |
+| -                                                        | -     | -                 |
+| `Dict[str, str] = Field(description="Strs", min_size=1)` | ``    | Raises FieldError |
 
 
 # Configuration

@@ -1,6 +1,8 @@
 """ test config """
+import ipaddress
 import os
 import shlex
+from pathlib import Path
 from typing import Dict, List, Optional, Set, Type
 
 import pytest
@@ -44,6 +46,20 @@ class Arguments(BaseModel):
         description="Int Dict split by slash and dash", split="-", kv_split="/"
     )
 
+    ipv4: Optional[ipaddress.IPv4Address] = Field(description="IPv4 Address")
+
+    ipv4_net: Optional[ipaddress.IPv4Network] = Field(description="IPv4 Network")
+
+    path: Optional[Path] = Field(description="Path")
+
+
+class ArgNs2(BaseModel):
+    str_arg: str = Field(value="Unset", description="String argument")
+
+
+class ArgNs1(BaseModel):
+    ns: ArgNs2 = Field(description="Namespaced argument")
+
 
 class Arg1(BaseModel):
     str_arg: str = Field(description="Required String Argument")
@@ -81,9 +97,21 @@ def parse_args(
     )
 
 
+def test_schema_namespaces() -> None:
+    """arguments from namespaced schemas"""
+    commandline = "--ns a:1,b:2".split()
+
+    # Recusrive schemas are not supported
+    with pytest.raises(FieldError):
+        parse_args(ArgNs1, commandline)
+
+
 def test_schema_commandline() -> None:
     """arguments from command line"""
-    commandline = "--str-arg test --enabled".split()
+    commandline = (
+        "--str-arg test --enabled --path /etc/passwd --ipv4 127.0.0.1 "
+        + "--ipv4-net 192.168.1.0/24"
+    ).split()
 
     config = parse_args(Arguments, commandline)
 
@@ -92,6 +120,17 @@ def test_schema_commandline() -> None:
     assert config.str_arg == "test"
     assert config.enabled is True
     assert config.flag1 is True  # Default True
+    assert config.path == Path("/etc/passwd")
+    assert config.ipv4 == ipaddress.IPv4Address("127.0.0.1")
+    assert config.ipv4_net == ipaddress.IPv4Network("192.168.1.0/24")
+
+
+def test_schema_ipv4_fail_to_validate() -> None:
+    """arguments from command line"""
+    commandline = "--str-arg test --ipv4 x.y.z".split()
+
+    with pytest.raises(ValidationError):
+        parse_args(Arguments, commandline, raise_on_validation_error=True)
 
 
 def test_schema_commandline_strset() -> None:
@@ -257,6 +296,10 @@ def test_split_list() -> None:
     # Configure split value
     assert split_list("a b c", ArrayInfo(array_type=str, split=" "))
 
+    # min_size
+    with pytest.raises(FieldError):
+        assert split_list("", ArrayInfo(array_type=str, min_size=1))
+
 
 def test_split_dict() -> None:
 
@@ -266,6 +309,10 @@ def test_split_dict() -> None:
     assert d is not None
 
     assert d["c"] == "value X"
+
+    with pytest.raises(FieldError):
+        v = split_dict("", DictInfo(dict_type=str, min_size=1))
+        print(v)
 
     with pytest.raises(FieldError):
         split_dict("a,b", DictInfo(dict_type=str))
