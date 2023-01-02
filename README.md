@@ -189,8 +189,8 @@ The configuration presedence are (from lowest to highest):
 
 Helper functions to use [XDG Base Directories](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html) are included in `caep.xdg`:
 
-It sill look up `XDG` environment variables like `$XDG_CONFIG_HOME` and use
-defaults it now specified.
+It will look up `XDG` environment variables like `$XDG_CONFIG_HOME` and use
+defaults if not specified.
 
 ### `get_xdg_dir`
 
