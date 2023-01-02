@@ -2,7 +2,7 @@
 
 from os import path
 
-from setuptools import setup  # type: ignore
+from setuptools import setup
 
 # read the contents of your README file
 this_directory = path.abspath(path.dirname(__file__))
@@ -11,7 +11,7 @@ with open(path.join(this_directory, "README.md"), "rb") as f:
 
 setup(
     name="caep",
-    version="0.0.5",
+    version="0.1.0",
     author="mnemonic AS",
     zip_safe=True,
     author_email="opensource@mnemonic.no",
@@ -23,6 +23,9 @@ setup(
     packages=["caep"],
     url="https://github.com/mnemonic-no/caep",
     python_requires=">=3.6, <4",
+    install_requires=[
+        "pydantic>=1.8.0,<2.0.0",
+    ],
     classifiers=[
         "Development Status :: 4 - Beta",
         "Topic :: Utilities",

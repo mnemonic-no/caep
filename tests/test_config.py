@@ -10,14 +10,14 @@ INI_TEST_FILE = os.path.join(os.path.dirname(__file__), "data/config_testdata.in
 def __argparser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser("test argparse", allow_abbrev=False)
     parser.add_argument("--number", type=int, default=1)
-    parser.add_argument("--bool", action="store_true")
+    parser.add_argument("--enabled", action="store_true")
     parser.add_argument("--str-arg")
 
     return parser
 
 
 def test_argparse_only() -> None:
-    """all arguments from command line, using default for number and bool"""
+    """all arguments from command line, using default for number and enabled"""
 
     parser = __argparser()
 
@@ -29,7 +29,7 @@ def test_argparse_only() -> None:
 
     assert args.number == 1
     assert args.str_arg == "test"
-    assert not args.bool
+    assert not args.enabled
 
 
 def test_argparse_ini() -> None:
@@ -44,7 +44,7 @@ def test_argparse_ini() -> None:
 
     assert args.number == 3
     assert args.str_arg == "from ini"
-    assert args.bool is True
+    assert args.enabled is True
 
 
 def test_argparse_env() -> None:
@@ -54,7 +54,7 @@ def test_argparse_env() -> None:
     env = {
         "STR_ARG": "from env",
         "NUMBER": 4,
-        "BOOL": "yes",  # accepts both yes and true
+        "ENABLED": "yes",  # accepts both yes and true
     }
 
     for key, value in env.items():
@@ -64,7 +64,7 @@ def test_argparse_env() -> None:
 
     assert args.number == 4
     assert args.str_arg == "from env"
-    assert args.bool is True
+    assert args.enabled is True
 
     # Remove from environment variables
     for key in env:
@@ -74,7 +74,7 @@ def test_argparse_env() -> None:
 def test_argparse_env_ini() -> None:
     """
     --number from enviorment
-    --bool from ini
+    --enabled from ini
     --str-arg from cmdline
 
     """
@@ -95,7 +95,7 @@ def test_argparse_env_ini() -> None:
 
     assert args.number == 4
     assert args.str_arg == "cmdline"
-    assert args.bool is True
+    assert args.enabled is True
 
     # Remove from environment variables
     for key in env:
