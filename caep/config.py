@@ -67,18 +67,16 @@ argparse.ArgumentParser.__init__ = partialmethod(  # type: ignore
 )
 
 
-class SectionNotFound(Exception):
-    """Config file not found"""
+class ArgumentError(Exception):
+    pass
 
-    def __init__(self, *args: Any) -> None:
-        Exception.__init__(self, *args)
+
+class SectionNotFound(Exception):
+    pass
 
 
 class NotSupported(Exception):
-    """Option not supported"""
-
-    def __init__(self, *args: Any) -> None:
-        Exception.__init__(self, *args)
+    pass
 
 
 def find_default_ini(ini_id: str, ini_filename: str) -> Optional[str]:
@@ -233,9 +231,9 @@ def all_defaults(
 
 def handle_args(
     parser: argparse.ArgumentParser,
-    config_id: str,
-    config_name: str,
-    section_name: str,
+    config_id: Optional[str],
+    config_name: Optional[str],
+    section_name: Optional[str],
     opts: Optional[List[str]] = None,
 ) -> argparse.Namespace:
     """
@@ -245,8 +243,27 @@ def handle_args(
     config_id and config_name will be used to locate the default config like this:
         - ~/.config/<CONFIG_ID>/<CONFIG_FILE_NAME>
         - /etc/<CONFIG_FILE_NAME>
+
+    config_id, config_name and section_name is optional and without them
+    configuration will not be loaded from an ini-file.
+
+    ArgumentError is raised if some but none all of config_id, config_name and
+    section_name is specified.
     """
 
+    config_opts = [config_id, config_name, section_name]
+
+    if any(config_opts) and not all(config_opts):
+        raise ArgumentError(
+            "If any of config_id, config_name or section_name is specified "
+            "you must specify all"
+        )
+
+    if not (config_id and config_name and section_name):
+        # Do not load configuration from ini file
+        return parser.parse_args(opts)
+
+    # Load from ini
     cp, remainder_argv = load_ini(config_id, config_name, opts=opts)
 
     if cp:
