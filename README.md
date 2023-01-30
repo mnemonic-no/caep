@@ -46,6 +46,19 @@ $ ./example.py --text "My value" --switch
 text='My value' number=1 switch=True intlist=[1, 2, 3]
 ```
 
+# Load config without ini support
+
+Specifying configuration location, name and section is optional and can be skipped if you
+only want to use configuration from environment variables and command line arguments:
+
+```python
+# Only load arguments from environment and command line
+config = caep.load(
+    Config,
+    "CAEP Example",
+)
+```
+
 # Pydantic field types
 
 Pydantic fields should be defined using `Field` and include the `description` parameter

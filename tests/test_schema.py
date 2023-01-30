@@ -97,6 +97,25 @@ def parse_args(
     )
 
 
+def test_schema_no_config() -> None:
+    commandline = "--str-arg str".split()
+    config: Arguments = caep.load(Arguments, "Description", opts=commandline)
+
+    assert config is not None
+
+
+def test_schema_epilog(capsys) -> None:  # type: ignore
+    """Test epilog that are printed on --help"""
+    commandline = "--help".split()
+
+    with pytest.raises(SystemExit):
+        caep.load(Arguments, "Description", opts=commandline, epilog="Extended epilog")
+
+    captured = capsys.readouterr()
+
+    assert "Extended epilog" in captured.out
+
+
 def test_schema_namespaces() -> None:
     """arguments from namespaced schemas"""
     commandline = "--ns a:1,b:2".split()
