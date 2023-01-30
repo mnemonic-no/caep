@@ -97,6 +97,13 @@ def parse_args(
     )
 
 
+def test_schema_no_config() -> None:
+    commandline = "--str-arg str".split()
+    config: Arguments = caep.load(Arguments, "Description", opts=commandline)
+
+    assert config is not None
+
+
 def test_schema_namespaces() -> None:
     """arguments from namespaced schemas"""
     commandline = "--ns a:1,b:2".split()

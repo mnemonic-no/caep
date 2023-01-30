@@ -309,9 +309,9 @@ def build_parser(
 def load(
     model: Type[BaseModelType],
     description: str,
-    config_id: str,
-    config_file_name: str,
-    section_name: str,
+    config_id: Optional[str] = None,
+    config_file_name: Optional[str] = None,
+    section_name: Optional[str] = None,
     alias: bool = False,
     opts: Optional[List[str]] = None,
     raise_on_validation_error: bool = False,
