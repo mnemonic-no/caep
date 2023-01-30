@@ -52,8 +52,7 @@ Specifying configuration location, name and section is optional and can be skipp
 only want to use configuration from environment variables and command line arguments:
 
 ```python
-# Config/section options below will only be used if loading configuration
-# from ini file (under ~/.config)
+# Only load arguments from environment and command line
 config = caep.load(
     Config,
     "CAEP Example",
