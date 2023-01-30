@@ -32,7 +32,7 @@ config = caep.load(
     "CAEP Example",
     "caep",  # Find .ini file under ~/.config/caep
     "caep.ini",  # Find .ini file name caep.ini
-    "section",  # Load settings from [section] (default to [DEFATULT]
+    "section",  # Load settings from [section] (default to [DEFAULT]
 )
 
 print(config)
