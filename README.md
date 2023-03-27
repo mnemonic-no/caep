@@ -258,7 +258,7 @@ class ExampleConfig(BaseModel):
         """If one argument is set, they should all be set"""
 
         raise_if_some_and_not_all(
-            values, ["conf_username", "conf_password", "conf_parent_id"]
+            values, ["username", "password", "parent_id"]
         )
 
         return values
