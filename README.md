@@ -196,6 +196,7 @@ The configuration presedence are (from lowest to highest):
 * environment variable
 * command line argument
 
+
 ## Validation
 
 ## XDG
@@ -239,3 +240,29 @@ still supported, but with this approac you will not get the validation from pyda
 >>> parser.add_argument('--str-arg')
 >>> args = caep.config.handle_args(parser, <CONFIG_ID>, <CONFIG_FILE_NAME>, <SECTION_NAME>)
 ```
+
+# Helper Functions
+
+## raise_if_some_and_not_all
+Raise ArgumentError if some of the specified entries in the dictionary has non
+false values but not all
+
+```python
+class ExampleConfig(BaseModel):
+    username: Optional[str] = Field(description="Username")
+    password: Optional[str] = Field(description="Password")
+    parent_id: Optional[str] = Field(description="Parent ID")
+
+    @root_validator
+    def check_arguments(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+        """If one argument is set, they should all be set"""
+
+        raise_if_some_and_not_all(
+            values, ["conf_username", "conf_password", "conf_parent_id"]
+        )
+
+        return values
+```
+
+## script_name
+   Return first external module that called this function, directly, or indirectly
