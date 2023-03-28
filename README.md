@@ -49,7 +49,7 @@ text='My value' number=1 switch=True intlist=[1, 2, 3]
 # Load config without ini support
 
 Specifying configuration location, name and section is optional and can be skipped if you
-only want to use configuration from environment variables and command line arguments:
+do not want to support loading ini files from `$XDG_CONFIG_HOME`:
 
 ```python
 # Only load arguments from environment and command line
@@ -58,6 +58,9 @@ config = caep.load(
     "CAEP Example",
 )
 ```
+
+With the code above you can still specify a ini file with `--config <ini-file>`, and use
+environment variables and command line arguments.
 
 # Pydantic field types
 
@@ -171,13 +174,13 @@ The argument `min_size` can be used to specify the minimum numer of keys in the 
 Arguments are parsed in two phases. First, it will look for the optional argument `--config`
 which can be used to specify an alternative location for the ini file. If not `--config` argument
 is given it will look for an optional ini file in the following locations
-(`~/.config has presedence`):
+(`~/.config has presedence`) *if* `config_id` and `config_name` is specified:
 
 - `~/.config/<CONFIG_ID>/<CONFIG_FILE_NAME>` (or directory specified by `$XDG_CONFIG_HOME`)
 - `/etc/<CONFIG_FILE_NAME>`
 
 The ini file can contain a `[DEFAULT]` section that will be used for all configurations.
-In addition it can have a section that corresponds with `<SECTION_NAME>` that for
+In addition it can have a section that corresponds with `<SECTION_NAME>` (if specified) that for
 specific configuration, that will over override config from `[DEFAULT]`
 
 # Environment variables

@@ -254,6 +254,13 @@ def handle_args(
     section_name is specified.
     """
 
+    config_opts = [config_id, config_name]
+
+    if any(config_opts) and not all(config_opts):
+        raise ArgumentError(
+            "If one of  config_id or config_name is specified you must specify both"
+        )
+
     # Load from ini
     cp, remainder_argv = load_ini(config_id, config_name, opts=opts)
 
