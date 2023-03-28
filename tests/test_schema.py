@@ -237,6 +237,15 @@ def test_schema_ini() -> None:
     assert config.flag1 is True
 
 
+def test_schema_ini_default_only() -> None:
+    """all arguments from ini file and default section"""
+    commandline = shlex.split(f"--config {INI_TEST_FILE}")
+
+    config = parse_args(Arguments, commandline)
+
+    assert config.number == 3
+
+
 def test_argparse_env() -> None:
     """all arguments from env"""
 

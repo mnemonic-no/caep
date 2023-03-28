@@ -100,12 +100,15 @@ def find_default_ini(ini_id: str, ini_filename: str) -> Optional[str]:
 
 
 def load_ini(
-    config_id: str, config_name: str, opts: Optional[List[str]] = None
+    config_id: Optional[str],
+    config_name: Optional[str],
+    opts: Optional[List[str]] = None,
 ) -> Tuple[Optional[configparser.ConfigParser], List[str]]:
     """
     return config, remainder_argv
 
-    config_id and config_name will be used to locate the default config like this:
+    config_id and config_name will be used to locate the default config like this,
+    if they are specified:
         - ~/.config/<CONFIG_ID>/<CONFIG_FILE_NAME>
         - /etc/<CONFIG_FILE_NAME>
     """
@@ -131,7 +134,8 @@ def load_ini(
     # No config file specified on command line, attempt to find
     # in default locations
     else:
-        config = find_default_ini(config_id, config_name)
+        if config_id and config_name:
+            config = find_default_ini(config_id, config_name)
 
     if config:
         cp = configparser.ConfigParser()
@@ -251,22 +255,17 @@ def handle_args(
     section_name is specified.
     """
 
-    config_opts = [config_id, config_name, section_name]
+    config_opts = [config_id, config_name]
 
     if any(config_opts) and not all(config_opts):
         raise ArgumentError(
-            "If any of config_id, config_name or section_name is specified "
-            "you must specify all"
+            "If one of  config_id or config_name is specified you must specify both"
         )
-
-    if not (config_id and config_name and section_name):
-        # Do not load configuration from ini file
-        return parser.parse_args(opts)
 
     # Load from ini
     cp, remainder_argv = load_ini(config_id, config_name, opts=opts)
 
-    if cp:
+    if cp and section_name:
         # Add (empty) section. In this way we can still access
         # the DEFAULT section
         if not cp.has_section(section_name):
