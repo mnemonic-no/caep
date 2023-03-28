@@ -107,7 +107,8 @@ def load_ini(
     """
     return config, remainder_argv
 
-    config_id and config_name will be used to locate the default config like this:
+    config_id and config_name will be used to locate the default config like this,
+    if they are specified:
         - ~/.config/<CONFIG_ID>/<CONFIG_FILE_NAME>
         - /etc/<CONFIG_FILE_NAME>
     """
