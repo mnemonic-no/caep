@@ -271,6 +271,8 @@ def handle_args(
         if not cp.has_section(section_name):
             cp.add_section(section_name)
         config = dict(cp[section_name])
+    elif cp:
+        config = dict(cp["DEFAULT"])
     else:
         config = {}
 
