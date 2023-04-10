@@ -1,4 +1,5 @@
 """ test config """
+
 import ipaddress
 import os
 import shlex
@@ -22,7 +23,6 @@ INI_TEST_FILE = os.path.join(os.path.dirname(__file__), "data/config_testdata.in
 
 
 class Arguments(BaseModel):
-
     str_arg: str = Field(description="Required String Argument")
     number: int = Field(default=1, description="Integer with default value")
     enabled: bool = Field(default=False, description="Boolean with default value")
@@ -241,7 +241,7 @@ def test_schema_ini_default_only() -> None:
     """all arguments from ini file and default section"""
     commandline = shlex.split(f"--config {INI_TEST_FILE}")
 
-    config = parse_args(Arguments, commandline)
+    config = caep.load(Arg2, "Program description", opts=commandline)
 
     assert config.number == 3
 
@@ -308,7 +308,6 @@ def test_schema_joined_schemas() -> None:
 
 
 def test_escape_split() -> None:
-
     assert escape_split("A\\,B\\,C,1\\,2\\,3") == ["A,B,C", "1,2,3"]
     assert escape_split("ABC 123", split=" ") == ["ABC", "123"]
 
@@ -317,7 +316,6 @@ def test_escape_split() -> None:
 
 
 def test_split_list() -> None:
-
     # Default split = ","
     assert split_list("a,b,c", ArrayInfo(array_type=str))
 
@@ -330,7 +328,6 @@ def test_split_list() -> None:
 
 
 def test_split_dict() -> None:
-
     # Defaults
     d = split_dict("a:b,b:c,c: value X", DictInfo(dict_type=str))
 
