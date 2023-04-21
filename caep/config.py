@@ -121,25 +121,27 @@ def load_ini(
         dest="config",
         type=argparse.FileType("r", encoding="UTF-8"),
         default=None,
+        nargs="+",
         help="change default configuration location",
     )
 
     args, remainder_argv = early_parser.parse_known_args(opts)
 
-    config = args.config
+    config = []
 
-    if config:
-        config = config.read()
+    if args.config:
+        config = [cfg_file.read() for cfg_file in args.config]
 
     # No config file specified on command line, attempt to find
     # in default locations
     else:
         if config_id and config_name:
-            config = find_default_ini(config_id, config_name)
+            config = [find_default_ini(config_id, config_name)]
 
     if config:
         cp = configparser.ConfigParser()
-        cp.read_string(config)
+        for cfg in config:
+            cp.read_string(cfg)
         return cp, remainder_argv
 
     return None, remainder_argv
@@ -271,8 +273,8 @@ def handle_args(
         if not cp.has_section(section_name):
             cp.add_section(section_name)
         config = dict(cp[section_name])
-    elif cp and cp.has_section("DEFAULT"):
-        config = dict(cp["DEFAULT"])
+    elif cp and cp.defaults():
+        config = dict(cp.defaults())
     else:
         config = {}
 

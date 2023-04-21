@@ -19,7 +19,9 @@ from caep.schema import (
     split_list,
 )
 
-INI_TEST_FILE = os.path.join(os.path.dirname(__file__), "data/config_testdata.ini")
+TEST_DATA_DIR = Path(__file__).parent / "data"
+INI_TEST_FILE = TEST_DATA_DIR / "config_testdata.ini"
+SECOND_INI_TEST_FILE = TEST_DATA_DIR / "config_testdata2.ini"
 
 
 class Arguments(BaseModel):
@@ -71,6 +73,12 @@ class Arg2(BaseModel):
 
 class Arg3(BaseModel):
     enabled: bool = Field(default=False, description="Boolean with default value")
+
+
+class MultipleFiles(BaseModel):
+    number: int = Field(default=1, description="Integer with default value")
+    first_file: bool = Field(description="Value set in first config file")
+    second_file: bool = Field(description="Value set in second config file")
 
 
 class ArgCombined(Arg1, Arg2, Arg3):
@@ -244,6 +252,20 @@ def test_schema_ini_default_only() -> None:
     config = caep.load(Arg2, "Program description", opts=commandline)
 
     assert config.number == 3
+
+
+def test_schema_ini_default_multiple_files() -> None:
+    """all arguments from ini file and default section"""
+    commandline = shlex.split(f"--config {INI_TEST_FILE} {SECOND_INI_TEST_FILE}")
+
+    config = caep.load(MultipleFiles, "Program description", opts=commandline)
+
+    # Make sure files has been read in the correct order
+    assert config.number == 2
+
+    # Make sure both files has been read
+    assert config.first_file is True
+    assert config.second_file is True
 
 
 def test_argparse_env() -> None:
