@@ -19,10 +19,9 @@ from caep.schema import (
     split_list,
 )
 
-INI_TEST_FILE = os.path.join(os.path.dirname(__file__), "data/config_testdata.ini")
-SECOND_INI_TEST_FILE = os.path.join(
-    os.path.dirname(__file__), "data/config_testdata2.ini"
-)
+TEST_DATA_DIR = Path(__file__).parent / "data"
+INI_TEST_FILE = TEST_DATA_DIR / "config_testdata.ini"
+SECOND_INI_TEST_FILE = TEST_DATA_DIR / "config_testdata2.ini"
 
 
 class Arguments(BaseModel):
