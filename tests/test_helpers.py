@@ -1,4 +1,6 @@
-from typing import Any, Dict, Optional
+import shlex
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 import pytest
 from pydantic import BaseModel  # noqa: E0611
@@ -6,6 +8,10 @@ from pydantic import Field, root_validator
 from test_schema import parse_args
 
 import caep
+
+TEST_DATA_DIR = Path(__file__).parent / "data"
+INI_TEST_FILE = TEST_DATA_DIR / "config_testdata.ini"
+SECOND_INI_TEST_FILE = TEST_DATA_DIR / "config_testdata2.ini"
 
 
 class ExampleConfig(BaseModel):
@@ -20,6 +26,25 @@ class ExampleConfig(BaseModel):
         caep.raise_if_some_and_not_all(values, ["username", "password", "parent_id"])
 
         return values
+
+
+def test_config_files() -> None:
+    """raise if config files are not returned correctly"""
+    files = [INI_TEST_FILE.as_posix(), SECOND_INI_TEST_FILE.as_posix()]
+
+    commandline = shlex.split(f"--config {' '.join(files)}")
+    config_files = caep.helpers.config_files(commandline)
+
+    for file in files:
+        assert file in config_files
+
+
+def test_config_files_empty() -> None:
+    """raise if config files are not empty"""
+    commandline: List[str] = []
+    config_files = caep.helpers.config_files(commandline)
+
+    assert config_files == []
 
 
 def test_raise_if_some_and_not_all() -> None:

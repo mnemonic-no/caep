@@ -99,6 +99,25 @@ def find_default_ini(ini_id: str, ini_filename: str) -> Optional[str]:
         return f.read()
 
 
+def get_early_parser() -> argparse.ArgumentParser:
+    """
+    return ArgumentParser for early arguments
+    """
+    early_parser = argparse.ArgumentParser(
+        description="configfile parser", add_help=False
+    )
+    early_parser.add_argument(
+        "--config",
+        dest="config",
+        type=argparse.FileType("r", encoding="UTF-8"),
+        default=None,
+        nargs="+",
+        help="change default configuration location",
+    )
+
+    return early_parser
+
+
 def load_ini(
     config_id: Optional[str],
     config_name: Optional[str],
@@ -113,18 +132,7 @@ def load_ini(
         - /etc/<CONFIG_FILE_NAME>
     """
 
-    early_parser = argparse.ArgumentParser(
-        description="configfile parser", add_help=False
-    )
-    early_parser.add_argument(
-        "--config",
-        dest="config",
-        type=argparse.FileType("r", encoding="UTF-8"),
-        default=None,
-        nargs="+",
-        help="change default configuration location",
-    )
-
+    early_parser = get_early_parser()
     args, remainder_argv = early_parser.parse_known_args(opts)
 
     config = []
