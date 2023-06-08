@@ -2,9 +2,29 @@ import inspect
 import os
 from typing import Any, Dict, List, Optional, cast
 
+import caep
+
 
 class ArgumentError(Exception):
     pass
+
+
+def config_files(arguments: Optional[List[str]] = None) -> List[str]:
+    """
+    return list of files specified with --config
+    """
+    config_files: List[str] = []
+
+    config_parser = caep.config.get_early_parser()
+    if arguments:
+        args, _ = config_parser.parse_known_args(arguments)
+    else:
+        args, _ = config_parser.parse_known_args()
+
+    if args.config:
+        config_files = [file.name for file in args.config]
+
+    return config_files
 
 
 def raise_if_some_and_not_all(entries: Dict[str, Any], keys: List[str]) -> None:
