@@ -19,7 +19,7 @@ class ExampleConfig(BaseModel):
     password: Optional[str] = Field(description="Password")
     parent_id: Optional[str] = Field(description="Parent ID")
 
-    @root_validator
+    @root_validator(skip_on_failure=True)
     def check_arguments(cls, values: Dict[str, Any]) -> Dict[str, Any]:
         """If one argument is set, they should all be set"""
 

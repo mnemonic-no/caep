@@ -11,7 +11,7 @@ with open(path.join(this_directory, "README.md"), "rb") as f:
 
 setup(
     name="caep",
-    version="0.1.9",
+    version="1.0.0b1",
     author="mnemonic AS",
     zip_safe=True,
     author_email="opensource@mnemonic.no",
@@ -25,8 +25,14 @@ setup(
     python_requires=">=3.6, <4",
     package_data={"caep": ["py.typed"]},
     install_requires=[
-        "pydantic>=1.8.0,<2.0.0",
+        "pydantic",
     ],
+    extras_require={
+        "dev": [
+            "mypy",
+            "pytest",
+        ]
+    },
     classifiers=[
         "Development Status :: 4 - Beta",
         "Topic :: Utilities",

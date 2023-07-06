@@ -6,9 +6,12 @@ import re
 import sys
 from typing import Any, Dict, List, Optional, Tuple, Type, TypeVar, cast
 
+import pydantic
 from pydantic import BaseModel, ValidationError
 
 import caep
+
+PYDANTIC_MAJOR_VERSION = pydantic.__version__.split(".")[0]
 
 DEFAULT_SPLIT = ","
 
@@ -85,7 +88,6 @@ def split_dict(
     else:
         # Split on specified field, unless they are escaped
         for items in escape_split(value, dict_info.split):
-
             try:
                 # Split key val on first occurence of specified split value
                 key, val = escape_split(items, dict_info.kv_split, maxsplit=2)
@@ -142,7 +144,6 @@ def split_arguments(
     args_with_list_split = {}
 
     for field, value in vars(args).items():
-
         if field in arrays:
             value = split_list(value, arrays[field], field)
 
@@ -230,6 +231,26 @@ def build_parser(
         field_type: type = str
         default = schema.get("default")
 
+        # In pydantic 2.0+ some fields are represented with anyOf, like this:
+        #
+        # "path": {
+        #     "anyOf": [
+        #         {
+        #             "format": "path",
+        #             "type": "string"
+        #         },
+        #         {
+        #             "type": "null"
+        #         }
+        #     ],
+        #     "description": "Path",
+        #     "title": "Path"
+        #
+
+        for types in schema.get("anyOf", []):
+            if types.get("type") != "null":
+                schema.update(**types)
+
         if "type" not in schema:
             raise FieldError(
                 "No type specified, recursive models are not supported: "
@@ -270,7 +291,6 @@ def build_parser(
             )
 
         else:
-
             if schema["type"] not in TYPE_MAPPING:
                 raise FieldError(
                     f"Unsupported pydantic type for field {field}: {schema}"
@@ -318,7 +338,6 @@ def load(
     exit_on_validation_error: bool = True,
     epilog: Optional[str] = None,
 ) -> BaseModelType:
-
     """
 
     Load ceap config as derived from pydantic model
@@ -342,7 +361,13 @@ def load(
     """
 
     # Get all pydantic fields
-    fields = model.schema(alias).get("properties")
+    # In pydantix 1.x we use the `schema()` method, but this is replaced with
+    # `model_json_schema` in pydantic 2.x.
+
+    if PYDANTIC_MAJOR_VERSION == "2":
+        fields = model.model_json_schema(alias).get("properties")  # type: ignore
+    else:
+        fields = model.schema(alias).get("properties")
 
     if not fields:
         raise SchemaError(f"Unable to get properties from schema {model}")
@@ -359,7 +384,7 @@ def load(
     )
 
     try:
-        return model(**args)
+        return cast(BaseModelType, model(**args))  # type: ignore
     except ValidationError as e:
         if raise_on_validation_error:
             raise
