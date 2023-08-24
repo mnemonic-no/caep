@@ -35,8 +35,9 @@ repos:
         language: python
         entry: mypy
         types: [python]
-        additional_dependencies: ["mypy==1.4.0", "pydantic", "pytest", "types-setuptools"]
-        args: ["--strict", "--install-types", "--non-interactive"]
+        args: [".", "--strict"]
+        pass_filenames: false
+        always_run: true
 
   - repo: local
     hooks:

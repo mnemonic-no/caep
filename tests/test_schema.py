@@ -34,18 +34,23 @@ class Arguments(BaseModel):
     float_arg: float = Field(default=0.5, description="Float with default value")
 
     # List fields will be separated by space as default
-    intlist: List[int] = Field(description="Space separated list of ints", split=" ")
+    intlist: List[int] = Field(
+        description="Space separated list of ints", json_schema_extra={"split": " "}
+    )
 
     # Can optionally use "split" argument to use another value to split based on
     strlist: List[str] = Field(description="Comma separated list of strings")
 
     # Set that will be separated by space (default)
-    strset: Set[str] = Field(description="Space separated set of strings", split=" ")
+    strset: Set[str] = Field(
+        description="Space separated set of strings", json_schema_extra={"split": " "}
+    )
 
     dict_str: Dict[str, str] = Field(description="Str Dict split by comma and colon")
 
     dict_int: Dict[str, int] = Field(
-        description="Int Dict split by slash and dash", split="-", kv_split="/"
+        description="Int Dict split by slash and dash",
+        json_schema_extra={"split": "-", "kv_split": "/"},
     )
 
     ipv4: Optional[ipaddress.IPv4Address] = Field(description="IPv4 Address")
@@ -56,7 +61,7 @@ class Arguments(BaseModel):
 
 
 class ArgNs2(BaseModel):
-    str_arg: str = Field(value="Unset", description="String argument")
+    str_arg: str = Field("Unset", description="String argument")
 
 
 class ArgNs1(BaseModel):
@@ -79,6 +84,16 @@ class MultipleFiles(BaseModel):
     number: int = Field(default=1, description="Integer with default value")
     first_file: bool = Field(description="Value set in first config file")
     second_file: bool = Field(description="Value set in second config file")
+
+
+class MinLength(BaseModel):
+    # Can optionally use "split" argument to use another value to split based on
+    strlist: List[str] = Field(
+        description="Comma separated list of strings", min_length=1
+    )
+    dict_str: Dict[str, str] = Field(
+        description="Str Dict split by comma and colon", min_length=2
+    )
 
 
 class ArgCombined(Arg1, Arg2, Arg3):
@@ -195,8 +210,6 @@ def test_schema_commandline_dict_int() -> None:
 
     assert dict_int is not None
     assert dict_int is not {}
-
-    print(dict_int)
 
     assert dict_int["a"] == 1
     assert dict_int["b"] == 2
@@ -329,6 +342,27 @@ def test_schema_joined_schemas() -> None:
     assert config.enabled is True
 
 
+def test_min_length() -> None:
+    """Test schema that is created based on three other schemas"""
+
+    with pytest.raises(SystemExit):
+        parse_args(MinLength, shlex.split("--strlist arg1,arg2"))
+
+    with pytest.raises(SystemExit):
+        parse_args(MinLength, shlex.split("--dict-str a:b,c:d"))
+
+    config = parse_args(
+        MinLength,
+        shlex.split(
+            "--strlist arg1 --dict-str 'header 1: x option, header 2: y option'"
+        ),
+    )
+
+    assert config.strlist == ["arg1"]
+    assert config.dict_str["header 1"] == "x option"
+    assert config.dict_str["header 2"] == "y option"
+
+
 def test_escape_split() -> None:
     assert escape_split("A\\,B\\,C,1\\,2\\,3") == ["A,B,C", "1,2,3"]
     assert escape_split("ABC 123", split=" ") == ["ABC", "123"]
@@ -344,10 +378,6 @@ def test_split_list() -> None:
     # Configure split value
     assert split_list("a b c", ArrayInfo(array_type=str, split=" "))
 
-    # min_size
-    with pytest.raises(FieldError):
-        assert split_list("", ArrayInfo(array_type=str, min_size=1))
-
 
 def test_split_dict() -> None:
     # Defaults
@@ -356,10 +386,6 @@ def test_split_dict() -> None:
     assert d is not None
 
     assert d["c"] == "value X"
-
-    with pytest.raises(FieldError):
-        v = split_dict("", DictInfo(dict_type=str, min_size=1))
-        print(v)
 
     with pytest.raises(FieldError):
         split_dict("a,b", DictInfo(dict_type=str))

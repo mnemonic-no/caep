@@ -2,7 +2,7 @@
 
 from os import path
 
-from setuptools import setup
+from setuptools import setup  # type: ignore
 
 # read the contents of your README file
 this_directory = path.abspath(path.dirname(__file__))
@@ -11,7 +11,7 @@ with open(path.join(this_directory, "README.md"), "rb") as f:
 
 setup(
     name="caep",
-    version="1.0.0b1",
+    version="1.0.0",
     author="mnemonic AS",
     zip_safe=True,
     author_email="opensource@mnemonic.no",
@@ -31,6 +31,7 @@ setup(
         "dev": [
             "mypy",
             "pytest",
+            "types-setuptools",
         ]
     },
     classifiers=[
