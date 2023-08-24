@@ -6,6 +6,75 @@ and arguments into a [pydantic](https://docs.pydantic.dev/) schema.
 With the pydantic schema you will have a fully typed configuration object that is parsed
 at load time.
 
+# Change log
+
+## 1.0.0
+
+Support for pydantic 2.x. It is advised to migrate models with these changes:
+
+### Use `min_length` instead of `min_size`
+
+Pydantic has builtin support for size of list, dictionaries and sets using `min_length` so you should change
+```python
+intlist: List[int] = Field(description="Space separated list of ints", min_size=1)
+```
+
+to
+
+```python
+intlist: List[int] = Field(description="Space separated list of ints", min_length=1)
+```
+
+### Migrate `split` and `kv_split` to `json_schema_extra`
+
+Do not use `split` and `kv_split` directly on the field, but put them in a dictionary `json_schema_extra`. E.g. change
+
+```python
+intlist: List[int] = Field(description="Space separated list of ints", split=" ")
+```
+
+to
+
+```python
+intlist: List[int] = Field(
+    description="Space separated list of ints", json_schema_extra={"split": " "}
+)
+```
+
+and change
+
+```python
+dict_int: Dict[str, int] = Field(
+    description="Int Dict split by slash and dash", split="-", kv_split="/"
+)
+```
+
+to
+
+```python
+dict_int: Dict[str, int] = Field(
+    description="Int Dict split by slash and dash",
+    json_schema_extra={"split": "-", "kv_split": "/"},
+)
+```
+
+### Migrate `root_validator` to `model_validator`
+
+`root_validator` are stil supported, but it is advised to migrate to `model_validator`. Example using helper function `raise_if_some_and_not_all`:
+
+
+```python
+    @model_validator(mode="after")  # type: ignore
+    def check_arguments(cls, m: "ExampleConfig") -> "ExampleConfig":
+        """If one argument is set, they should all be set"""
+
+        caep.raise_if_some_and_not_all(
+            m.__dict__, ["username", "password", "parent_id"]
+        )
+
+        return m
+```
+
 # Example
 
 ```python
@@ -22,7 +91,7 @@ class Config(BaseModel):
     text: str = Field(description="Required String Argument")
     number: int = Field(default=1, description="Integer with default value")
     switch: bool = Field(description="Boolean with default value")
-    intlist: List[int] = Field(description="Space separated list of ints", split=" ")
+    intlist: List[int] = Field(description="Space separated list of ints", json_schema_extra={"split": " "})
 
 
 # Config/section options below will only be used if loading configuration
@@ -121,16 +190,16 @@ List of strings, split by specified character (default = comma, argument=`split`
 
 Some examples:
 
-| Field                                              | Input   | Configuration |
-| -                                                  | -       | -             |
-| `List[int] = Field(description="Ints", split=" ")` | `1 2`   | [1, 2]        |
-| `List[str] = Field(description="Strs")`            | `ab,bc` | ["ab", "bc"]  |
+| Field                                                                     | Input   | Configuration |
+| -                                                                         | -       | -             |
+| `List[int] = Field(description="Ints", json_schema_extra={"split": " "})` | `1 2`   | [1, 2]        |
+| `List[str] = Field(description="Strs")`                                   | `ab,bc` | ["ab", "bc"]  |
 
-The argument `min_size` can be used to specify the minimum size of the list:
+The argument `min_length` (pydantic builtin) can be used to specify the minimum size of the list:
 
-| Field                                               | Input | Configuration     |
-| -                                                   | -     | -                 |
-| `List[str] = Field(description="Strs", min_size=1)` | ``    | Raises FieldError |
+| Field                                                 | Input | Configuration          |
+| -                                                     | -     | -                      |
+| `List[str] = Field(description="Strs", min_length=1)` | ``    | Raises ValidationError |
 
 ### `Set[str]` (`set[str]` for python >= 3.9)
 
@@ -138,16 +207,16 @@ Set, split by specified character (default = comma, argument=`split`).
 
 Some examples:
 
-| Field                                             | Input      | Configuration |
-| -                                                 | -          | -             |
-| `Set[int] = Field(description="Ints", split=" ")` | `1 2 2`    | {1, 2}        |
-| `Set[str] = Field(description="Strs")`            | `ab,ab,xy` | {"ab", "xy"}  |
+| Field                                                                    | Input      | Configuration |
+| -                                                                        | -          | -             |
+| `Set[int] = Field(description="Ints", json_schema_extra={"split": " "})` | `1 2 2`    | {1, 2}        |
+| `Set[str] = Field(description="Strs")`                                   | `ab,ab,xy` | {"ab", "xy"}  |
 
-The argument `min_size` can be used to specify the minimum size of the set:
+The argument `min_length` can be used to specify the minimum size of the set:
 
-| Field                                               | Input | Configuration     |
-| -                                                   | -     | -                 |
-| `Set[str] = Field(description="Strs", min_size=1)`  | ``    | Raises FieldError |
+| Field                                                | Input | Configuration          |
+| -                                                    | -     | -                      |
+| `Set[str] = Field(description="Strs", min_length=1)` | ``    | Raises ValidationError |
 
 
 ### `Dict[str, <TYPE>]` (`dict[str, <TYPE>]` for python >= 3.9)
@@ -162,11 +231,11 @@ Some examples:
 | `Dict[str, str] = Field(description="Dict")`         | `x:a,y:b`            | {"x": "a", "y": "b"}     |
 | `Dict[str, int] = Field(description="Dict of ints")` | `a b c:1, d e f:2`   | {"a b c": 1, "d e f": 2} |
 
-The argument `min_size` can be used to specify the minimum numer of keys in the dictionary:
+The argument `min_length` can be used to specify the minimum numer of keys in the dictionary:
 
-| Field                                                    | Input | Configuration     |
-| -                                                        | -     | -                 |
-| `Dict[str, str] = Field(description="Strs", min_size=1)` | ``    | Raises FieldError |
+| Field                                                      | Input | Configuration          |
+| -                                                          | -     | -                      |
+| `Dict[str, str] = Field(description="Strs", min_length=1)` | ``    | Raises ValidationError |
 
 
 # Configuration
@@ -232,7 +301,7 @@ Shortcut for `get_xdg_dir("CACHE")`.
 ## CAEP Legacy usage
 
 Prior to version `0.1.0` the recommend usage was to add parser objects manually. This is
-still supported, but with this approac you will not get the validation from pydantic:
+still supported, but with this approach you will not get the validation from pydantic:
 
 ```python
 >>> import caep
@@ -256,15 +325,15 @@ class ExampleConfig(BaseModel):
     password: Optional[str] = Field(description="Password")
     parent_id: Optional[str] = Field(description="Parent ID")
 
-    @root_validator(skip_on_failure=True)
-    def check_arguments(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+    @model_validator(mode="after")  # type: ignore
+    def check_arguments(cls, m: "ExampleConfig") -> "ExampleConfig":
         """If one argument is set, they should all be set"""
 
-        raise_if_some_and_not_all(
-            values, ["username", "password", "parent_id"]
+        caep.raise_if_some_and_not_all(
+            m.__dict__, ["username", "password", "parent_id"]
         )
 
-        return values
+        return m
 ```
 
 ## script_name
