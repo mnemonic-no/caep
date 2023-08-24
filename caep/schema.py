@@ -40,14 +40,12 @@ class FieldError(Exception):
 class ArrayInfo(BaseModel):
     array_type: type
     split: str = DEFAULT_SPLIT
-    min_size: int = 0
 
 
 class DictInfo(BaseModel):
     dict_type: type
     split: str = DEFAULT_SPLIT
     kv_split: str = DEFAULT_KV_SPLIT
-    min_size: int = 0
 
 
 Arrays = Dict[str, ArrayInfo]
@@ -96,11 +94,6 @@ def split_dict(
 
             d[key.strip()] = dict_info.dict_type(val.strip())
 
-    if len(d.keys()) < dict_info.min_size:
-        raise FieldError(
-            f"{field} have to few elements {len(d)} < {dict_info.min_size}"
-        )
-
     return d
 
 
@@ -118,9 +111,6 @@ def split_list(value: str, array: ArrayInfo, field: Optional[str] = None) -> Lis
     else:
         # Split by configured split value, unless it is escaped
         lst = [array.array_type(v.strip()) for v in escape_split(value, array.split)]
-
-    if len(lst) < array.min_size:
-        raise FieldError(f"{field} have to few elements {len(lst)} < {array.min_size}")
 
     return lst
 
@@ -268,7 +258,6 @@ def build_parser(
             arrays[field] = ArrayInfo(
                 array_type=array_type,
                 split=schema.get("split", DEFAULT_SPLIT),
-                min_size=schema.get("min_size", 0),
             )
 
             # For arrays (lists, sets etc), we parse as str in caep and split values by
@@ -287,7 +276,6 @@ def build_parser(
                 dict_type=dict_type,
                 split=schema.get("split", DEFAULT_SPLIT),
                 kv_split=schema.get("kv_split", DEFAULT_KV_SPLIT),
-                min_size=schema.get("min_size", 0),
             )
 
         else:
@@ -365,7 +353,7 @@ def load(
     # `model_json_schema` in pydantic 2.x.
 
     if PYDANTIC_MAJOR_VERSION == "2":
-        fields = model.model_json_schema(alias).get("properties")  # type: ignore
+        fields = model.model_json_schema(alias).get("properties")
     else:
         fields = model.schema(alias).get("properties")
 

@@ -1,10 +1,10 @@
 import shlex
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
 import pytest
 from pydantic import BaseModel  # noqa: E0611
-from pydantic import Field, root_validator
+from pydantic import Field, model_validator
 from test_schema import parse_args
 
 import caep
@@ -19,13 +19,15 @@ class ExampleConfig(BaseModel):
     password: Optional[str] = Field(description="Password")
     parent_id: Optional[str] = Field(description="Parent ID")
 
-    @root_validator(skip_on_failure=True)
-    def check_arguments(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+    @model_validator(mode="after")  # type: ignore
+    def check_arguments(cls, m: "ExampleConfig") -> "ExampleConfig":
         """If one argument is set, they should all be set"""
 
-        caep.raise_if_some_and_not_all(values, ["username", "password", "parent_id"])
+        caep.raise_if_some_and_not_all(
+            m.__dict__, ["username", "password", "parent_id"]
+        )
 
-        return values
+        return m
 
 
 def test_config_files() -> None:
