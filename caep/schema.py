@@ -134,10 +134,10 @@ def split_arguments(
     args_with_list_split = {}
 
     for field, value in vars(args).items():
-        if field in arrays:
+        if field in arrays and not isinstance(value, (set, list)):
             value = split_list(value, arrays[field], field)
 
-        elif field in dicts:
+        elif field in dicts and not isinstance(value, dict):
             value = split_dict(value, dicts[field], field)
 
         args_with_list_split[field] = value
