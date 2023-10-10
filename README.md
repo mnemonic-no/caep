@@ -8,6 +8,20 @@ at load time.
 
 # Change log
 
+## 1.1.0
+
+Support list/set/dict defaults, so you can now do:
+
+```python
+intlist: List[int] = Field([0,1,2], description="List of ints")
+```
+
+The previous way to defined defaults using strings are still supported, but will fail type checking with the pydantic mypy plugin, and will be removed in a later version:
+
+```python
+intlist: List[int] = Field("0,1,2", description="List of ints")
+```
+
 ## 1.0.0
 
 Support for pydantic 2.x. It is advised to migrate models with these changes:

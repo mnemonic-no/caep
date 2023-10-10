@@ -210,7 +210,12 @@ def get_default(action: argparse.Action, section: Dict[str, Any], key: str) -> A
     # --int-arg 2
     # will give you int(2)
     # If --int-arg is omitted, it will use None
-    if action.type is not None and default is not None:
+    if (
+        action.type is not None
+        and default is not None
+        # If default is specified as list, set or dict, do not enforce type
+        and not isinstance(default, (list, set, dict))
+    ):
         default = action.type(default)
 
     return default

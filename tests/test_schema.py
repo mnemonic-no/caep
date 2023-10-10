@@ -96,6 +96,23 @@ class MinLength(BaseModel):
     )
 
 
+class ListSetDictDefaults(BaseModel):
+    strlist1: List[str] = Field(
+        "aaa,bbb,ccc", description="List with comma separated strings as default"
+    )
+    strlist2: List[str] = Field(["aaa", "bbb", "ccc"], description="List with strings")
+    intset1: Set[int] = Field(
+        "0,1,2",
+        description="Set with comma separated int using parsed string as default",
+    )
+    intset2: Set[int] = Field({0, 1, 2}, description="Set with int defaults in set")
+
+    dict1: Dict[str, str] = Field("a:b,c:d", description="Dict with string defaults")
+    dict2: Dict[str, str] = Field(
+        dict(a="b", c="d"), description="Dict with dict defaults"
+    )
+
+
 class ArgCombined(Arg1, Arg2, Arg3):
     pass
 
@@ -343,7 +360,7 @@ def test_schema_joined_schemas() -> None:
 
 
 def test_min_length() -> None:
-    """Test schema that is created based on three other schemas"""
+    """Test minimum length"""
 
     with pytest.raises(SystemExit):
         parse_args(MinLength, shlex.split("--strlist arg1,arg2"))
@@ -361,6 +378,16 @@ def test_min_length() -> None:
     assert config.strlist == ["arg1"]
     assert config.dict_str["header 1"] == "x option"
     assert config.dict_str["header 2"] == "y option"
+
+
+def test_list_defaults() -> None:
+    """Test schema default for lists"""
+
+    config = parse_args(ListSetDictDefaults)
+
+    assert config.strlist1 == config.strlist2
+    assert config.intset1 == config.intset2
+    assert config.dict1 == config.dict2
 
 
 def test_escape_split() -> None:
