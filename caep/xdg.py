@@ -25,9 +25,9 @@ def get_xdg_dir(xdg_id: str, env_name: str, default: str, create: bool = False) 
     Return path to cache_directory
     """
 
-    home = os.environ["HOME"]
+    home = Path.home()
 
-    xdg_home = os.environ.get(env_name, Path(home) / default)
+    xdg_home = os.environ.get(env_name, home / default)
     xdg_dir = Path(xdg_home) / xdg_id
 
     if create and not xdg_dir.is_dir():
