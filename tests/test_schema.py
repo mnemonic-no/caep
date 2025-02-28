@@ -1,10 +1,10 @@
-""" test config """
+"""test config"""
 
 import ipaddress
 import os
 import shlex
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Type
+from typing import Optional
 
 import pytest
 from pydantic import BaseModel, Field, ValidationError
@@ -34,21 +34,21 @@ class Arguments(BaseModel):
     float_arg: float = Field(default=0.5, description="Float with default value")
 
     # List fields will be separated by space as default
-    intlist: List[int] = Field(
+    intlist: list[int] = Field(
         description="Space separated list of ints", json_schema_extra={"split": " "}
     )
 
     # Can optionally use "split" argument to use another value to split based on
-    strlist: List[str] = Field(description="Comma separated list of strings")
+    strlist: list[str] = Field(description="Comma separated list of strings")
 
     # Set that will be separated by space (default)
-    strset: Set[str] = Field(
+    strset: set[str] = Field(
         description="Space separated set of strings", json_schema_extra={"split": " "}
     )
 
-    dict_str: Dict[str, str] = Field(description="Str Dict split by comma and colon")
+    dict_str: dict[str, str] = Field(description="Str Dict split by comma and colon")
 
-    dict_int: Dict[str, int] = Field(
+    dict_int: dict[str, int] = Field(
         description="Int Dict split by slash and dash",
         json_schema_extra={"split": "-", "kv_split": "/"},
     )
@@ -88,28 +88,31 @@ class MultipleFiles(BaseModel):
 
 class MinLength(BaseModel):
     # Can optionally use "split" argument to use another value to split based on
-    strlist: List[str] = Field(
+    strlist: list[str] = Field(
         description="Comma separated list of strings", min_length=1
     )
-    dict_str: Dict[str, str] = Field(
+    dict_str: dict[str, str] = Field(
         description="Str Dict split by comma and colon", min_length=2
     )
 
 
 class ListSetDictDefaults(BaseModel):
-    strlist1: List[str] = Field(
-        "aaa,bbb,ccc", description="List with comma separated strings as default"
+    strlist1: list[str] = Field(
+        ["aaa", "bbb", "ccc"],
+        description="List with comma separated strings as default",
     )
-    strlist2: List[str] = Field(["aaa", "bbb", "ccc"], description="List with strings")
-    intset1: Set[int] = Field(
-        "0,1,2",
+    strlist2: list[str] = Field(["aaa", "bbb", "ccc"], description="List with strings")
+    intset1: set[int] = Field(
+        {0, 1, 2},
         description="Set with comma separated int using parsed string as default",
     )
-    intset2: Set[int] = Field({0, 1, 2}, description="Set with int defaults in set")
+    intset2: set[int] = Field({0, 1, 2}, description="Set with int defaults in set")
 
-    dict1: Dict[str, str] = Field("a:b,c:d", description="Dict with string defaults")
-    dict2: Dict[str, str] = Field(
-        dict(a="b", c="d"), description="Dict with dict defaults"
+    dict1: dict[str, str] = Field(
+        {"a": "b", "c": "d"}, description="Dict with string defaults"
+    )
+    dict2: dict[str, str] = Field(
+        {"a": "b", "c": "d"}, description="Dict with dict defaults"
     )
 
 
@@ -118,8 +121,8 @@ class ArgCombined(Arg1, Arg2, Arg3):
 
 
 def parse_args(
-    model: Type[caep.schema.BaseModelType],
-    commandline: Optional[List[str]] = None,
+    model: type[caep.schema.BaseModelType],
+    commandline: Optional[list[str]] = None,
     description: str = "Program description",
     config_id: str = "config_id",
     config_filename: str = "config_filename",
@@ -197,7 +200,7 @@ def test_schema_commandline_strset() -> None:
     commandline = shlex.split("--str-arg test --strset 'abc abc abc'")
 
     config = parse_args(Arguments, commandline)
-    assert config.strset == set(("abc",))
+    assert config.strset == {"abc"}
 
 
 def test_schema_commandline_dict_str() -> None:
@@ -211,7 +214,7 @@ def test_schema_commandline_dict_str() -> None:
     dict_str = config.dict_str
 
     assert dict_str is not None
-    assert dict_str is not {}
+    assert dict_str != {}
 
     assert dict_str["header 1"] == "x option"
     assert dict_str["header 2"] == "y option"
@@ -226,7 +229,7 @@ def test_schema_commandline_dict_int() -> None:
     dict_int = config.dict_int
 
     assert dict_int is not None
-    assert dict_int is not {}
+    assert dict_int != {}
 
     assert dict_int["a"] == 1
     assert dict_int["b"] == 2

@@ -4,12 +4,14 @@
 import argparse
 import re
 import sys
-from typing import Any, Dict, List, Optional, Tuple, Type, TypeVar, cast
+from typing import Any, Optional, TypeVar, cast
 
 import pydantic
 from pydantic import BaseModel, ValidationError
 
 import caep
+
+BoundBaseModel = TypeVar("BoundBaseModel", bound=BaseModel)
 
 PYDANTIC_MAJOR_VERSION = pydantic.__version__.split(".")[0]
 
@@ -18,7 +20,7 @@ DEFAULT_SPLIT = ","
 DEFAULT_KV_SPLIT = ":"
 
 # Map of pydantic schema types to python types
-TYPE_MAPPING: Dict[str, type] = {
+TYPE_MAPPING: dict[str, type] = {
     "string": str,
     "integer": int,
     "number": float,
@@ -48,13 +50,13 @@ class DictInfo(BaseModel):
     kv_split: str = DEFAULT_KV_SPLIT
 
 
-Arrays = Dict[str, ArrayInfo]
-Dicts = Dict[str, DictInfo]
+Arrays = dict[str, ArrayInfo]
+Dicts = dict[str, DictInfo]
 
 
 def escape_split(
     value: str, split: str = DEFAULT_SPLIT, maxsplit: int = 0
-) -> List[str]:
+) -> list[str]:
     """
     Helper method to split on specified field
     (unless field is escaped with backslash)
@@ -68,7 +70,7 @@ def escape_split(
 
 def split_dict(
     value: Optional[str], dict_info: DictInfo, field: Optional[str] = None
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Split string into dictionary
 
@@ -78,7 +80,7 @@ def split_dict(
                           and the value to split items and
                           key/values on
     """
-    d: Dict[str, Any] = {}
+    d: dict[str, Any] = {}
 
     if value is None or not value.strip():
         d = {}
@@ -89,15 +91,17 @@ def split_dict(
             try:
                 # Split key val on first occurence of specified split value
                 key, val = escape_split(items, dict_info.kv_split, maxsplit=2)
-            except ValueError:
-                raise FieldError(f"Unable to split {items} by `{dict_info.kv_split}`")
+            except ValueError as e:
+                raise FieldError(
+                    f"Unable to split {items} by `{dict_info.kv_split}`"
+                ) from e
 
             d[key.strip()] = dict_info.dict_type(val.strip())
 
     return d
 
 
-def split_list(value: str, array: ArrayInfo, field: Optional[str] = None) -> List[Any]:
+def split_list(value: str, array: ArrayInfo, field: Optional[str] = None) -> list[Any]:
     """
     Split string into list
 
@@ -117,7 +121,7 @@ def split_list(value: str, array: ArrayInfo, field: Optional[str] = None) -> Lis
 
 def split_arguments(
     args: argparse.Namespace, arrays: Arrays, dicts: Dicts
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Loop over argument/values and split by configured split value for dicts and arrays
 
@@ -145,11 +149,11 @@ def split_arguments(
     return args_with_list_split
 
 
-def build_parser(
-    fields: Dict[str, Dict[str, Any]],
+def build_parser(  # noqa: C901
+    fields: dict[str, dict[str, Any]],
     description: str,
     epilog: Optional[str],
-) -> Tuple[argparse.ArgumentParser, Arrays, Dicts]:
+) -> tuple[argparse.ArgumentParser, Arrays, Dicts]:
     """
 
     Build argument parser based on pydantic fields
@@ -286,9 +290,9 @@ def build_parser(
 
             field_type = TYPE_MAPPING[schema["type"]]
 
-        parser_args: Dict[str, Any] = {}
+        parser_args: dict[str, Any] = {}
 
-        if field_type == bool:
+        if field_type is bool:
             if default in (False, None):
                 parser_args["action"] = "store_true"
 
@@ -315,17 +319,17 @@ def build_parser(
 
 
 def load(
-    model: Type[BaseModelType],
+    model: type[BoundBaseModel],
     description: str,
     config_id: Optional[str] = None,
     config_file_name: Optional[str] = None,
     section_name: Optional[str] = None,
     alias: bool = False,
-    opts: Optional[List[str]] = None,
+    opts: Optional[list[str]] = None,
     raise_on_validation_error: bool = False,
     exit_on_validation_error: bool = True,
     epilog: Optional[str] = None,
-) -> BaseModelType:
+) -> BoundBaseModel:
     """
 
     Load ceap config as derived from pydantic model
@@ -372,7 +376,7 @@ def load(
     )
 
     try:
-        return cast(BaseModelType, model(**args))  # type: ignore
+        return model(**args)
     except ValidationError as e:
         if raise_on_validation_error:
             raise

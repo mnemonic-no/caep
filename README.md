@@ -8,18 +8,23 @@ at load time.
 
 # Change log
 
+## 1.3.0
+
+- Use TypeVar in `load` to support typing when loading configuration with a specified module
+- Drop support for python 3.6, 3.7 and 3.8.
+
 ## 1.1.0
 
 Support list/set/dict defaults, so you can now do:
 
 ```python
-intlist: List[int] = Field([0,1,2], description="List of ints")
+intlist: list[int] = Field([0,1,2], description="List of ints")
 ```
 
 The previous way to defined defaults using strings are still supported, but will fail type checking with the pydantic mypy plugin, and will be removed in a later version:
 
 ```python
-intlist: List[int] = Field("0,1,2", description="List of ints")
+intlist: list[int] = Field("0,1,2", description="List of ints")
 ```
 
 ## 1.0.0
@@ -30,13 +35,13 @@ Support for pydantic 2.x. It is advised to migrate models with these changes:
 
 Pydantic has builtin support for size of list, dictionaries and sets using `min_length` so you should change
 ```python
-intlist: List[int] = Field(description="Space separated list of ints", min_size=1)
+intlist: list[int] = Field(description="Space separated list of ints", min_size=1)
 ```
 
 to
 
 ```python
-intlist: List[int] = Field(description="Space separated list of ints", min_length=1)
+intlist: list[int] = Field(description="Space separated list of ints", min_length=1)
 ```
 
 ### Migrate `split` and `kv_split` to `json_schema_extra`
@@ -44,13 +49,13 @@ intlist: List[int] = Field(description="Space separated list of ints", min_lengt
 Do not use `split` and `kv_split` directly on the field, but put them in a dictionary `json_schema_extra`. E.g. change
 
 ```python
-intlist: List[int] = Field(description="Space separated list of ints", split=" ")
+intlist: list[int] = Field(description="Space separated list of ints", split=" ")
 ```
 
 to
 
 ```python
-intlist: List[int] = Field(
+intlist: list[int] = Field(
     description="Space separated list of ints", json_schema_extra={"split": " "}
 )
 ```
@@ -93,7 +98,6 @@ dict_int: Dict[str, int] = Field(
 
 ```python
 #!/usr/bin/env python3
-from typing import List
 
 from pydantic import BaseModel, Field
 
@@ -105,7 +109,7 @@ class Config(BaseModel):
     text: str = Field(description="Required String Argument")
     number: int = Field(default=1, description="Integer with default value")
     switch: bool = Field(description="Boolean with default value")
-    intlist: List[int] = Field(description="Space separated list of ints", json_schema_extra={"split": " "})
+    intlist: list[int] = Field(description="Space separated list of ints", json_schema_extra={"split": " "})
 
 
 # Config/section options below will only be used if loading configuration
@@ -198,7 +202,7 @@ Examples:
 | `disable: bool = Field(value=True, description="Disable")` | `yes`     | False         |
 | `disable: bool = Field(value=True, description="Disable")` | `true`    | False         |
 
-### `List[str]` (`list[str]` for python >= 3.9)
+### `list[str]`
 
 List of strings, split by specified character (default = comma, argument=`split`).
 
@@ -206,16 +210,16 @@ Some examples:
 
 | Field                                                                     | Input   | Configuration |
 | -                                                                         | -       | -             |
-| `List[int] = Field(description="Ints", json_schema_extra={"split": " "})` | `1 2`   | [1, 2]        |
-| `List[str] = Field(description="Strs")`                                   | `ab,bc` | ["ab", "bc"]  |
+| `list[int] = Field(description="Ints", json_schema_extra={"split": " "})` | `1 2`   | [1, 2]        |
+| `list[str] = Field(description="Strs")`                                   | `ab,bc` | ["ab", "bc"]  |
 
 The argument `min_length` (pydantic builtin) can be used to specify the minimum size of the list:
 
 | Field                                                 | Input | Configuration          |
 | -                                                     | -     | -                      |
-| `List[str] = Field(description="Strs", min_length=1)` | ``    | Raises ValidationError |
+| `list[str] = Field(description="Strs", min_length=1)` | ``    | Raises ValidationError |
 
-### `Set[str]` (`set[str]` for python >= 3.9)
+### `set[str]`
 
 Set, split by specified character (default = comma, argument=`split`).
 
@@ -233,7 +237,7 @@ The argument `min_length` can be used to specify the minimum size of the set:
 | `Set[str] = Field(description="Strs", min_length=1)` | ``    | Raises ValidationError |
 
 
-### `Dict[str, <TYPE>]` (`dict[str, <TYPE>]` for python >= 3.9)
+### `dict[str, <TYPE>]`
 
 Dictioray of strings, split by specified character (default = comma, argument=`split` for
 splitting items and colon for splitting key/value).

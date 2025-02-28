@@ -1,6 +1,6 @@
 import inspect
-import os
-from typing import Any, Dict, List, Optional, cast
+from pathlib import Path
+from typing import Any, Optional, cast
 
 import caep
 
@@ -9,11 +9,11 @@ class ArgumentError(Exception):
     pass
 
 
-def config_files(arguments: Optional[List[str]] = None) -> List[str]:
+def config_files(arguments: Optional[list[str]] = None) -> list[str]:
     """
     return list of files specified with --config
     """
-    config_files: List[str] = []
+    config_files: list[str] = []
 
     config_parser = caep.config.get_early_parser()
     if arguments:
@@ -27,7 +27,7 @@ def config_files(arguments: Optional[List[str]] = None) -> List[str]:
     return config_files
 
 
-def raise_if_some_and_not_all(entries: Dict[str, Any], keys: List[str]) -> None:
+def raise_if_some_and_not_all(entries: dict[str, Any], keys: list[str]) -> None:
     """
     Raise ArgumentError if some of the specified entries in the dictionary has non
     false values but not all
@@ -41,7 +41,7 @@ def raise_if_some_and_not_all(entries: Dict[str, Any], keys: List[str]) -> None:
             f"--{key.replace('_', '-')}" for key in keys if not entries.get(key)
         )
         raise ArgumentError(
-            f"All or none of these arguments must be set: {all_args}. Missing: {missing_args}"  # noqa: E501
+            f"All or none of these arguments must be set: {all_args}. Missing: {missing_args}"
         )
 
 
@@ -51,13 +51,11 @@ def __mod_name(stack: inspect.FrameInfo) -> Optional[str]:
     if not mod:
         return None
 
-    return cast(
-        str, os.path.basename(mod.__file__).replace(".py", "").replace("_", "-")  # type: ignore # noqa: E501
-    )
+    return str(Path(cast(str, mod.__file__)).stem).replace("_", "-")
 
 
 def script_name() -> str:
-    """Return first external module that called this function, directly, or indirectly"""  # noqa: E501
+    """Return first external module that called this function, directly, or indirectly"""
 
     modules = [__mod_name(stack) for stack in inspect.stack() if __mod_name(stack)]
     return [name for name in modules if name and name != modules[0]][0]
