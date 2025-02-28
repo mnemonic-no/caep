@@ -1,0 +1,35 @@
+[tool.ruff]
+line-length = 88
+target-version = "py39"
+
+[tool.ruff.lint]
+select = [
+    "A",   # Builtins
+    "E",   # pycodestyle
+    "W",   # pycodestyle
+    "F",   # pyflakes
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "PTH", # Pathlib
+    "I",   # isort
+    "C",   # mccabe rules
+]
+
+ignore = [
+    "E501",   # Ignore long lines - handled by ruff format
+    "B019",   # Use of `functools.lru_cache` or `functools.cache` on methods can lead to memory leaks
+]
+
+
+[tool.mypy]
+# This is the way
+strict = true
+
+[tool.pytest.ini_options]
+pythonpath = [
+  "."
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

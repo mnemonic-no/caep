@@ -1,17 +1,17 @@
-"""Setup script for the python-act library module"""
+"""Setup script for the caep"""
 
-from os import path
+from pathlib import Path
 
 from setuptools import setup  # type: ignore
 
 # read the contents of your README file
-this_directory = path.abspath(path.dirname(__file__))
-with open(path.join(this_directory, "README.md"), "rb") as f:
+this_directory = Path(__file__).parent.resolve()
+with (this_directory / "README.md").open("rb") as f:
     long_description = f.read().decode("utf-8")
 
 setup(
     name="caep",
-    version="1.2.0",
+    version="1.3.0",
     author="mnemonic AS",
     zip_safe=True,
     author_email="opensource@mnemonic.no",
@@ -22,7 +22,7 @@ setup(
     keywords="mnemonic",
     packages=["caep"],
     url="https://github.com/mnemonic-no/caep",
-    python_requires=">=3.6, <4",
+    python_requires=">=3.9, <4",
     package_data={"caep": ["py.typed"]},
     install_requires=[
         "pydantic",

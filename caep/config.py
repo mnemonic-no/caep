@@ -56,7 +56,8 @@ import argparse
 import configparser
 import os
 from functools import partialmethod
-from typing import Any, Dict, List, Optional, Tuple
+from pathlib import Path
+from typing import Any, Optional
 
 from . import xdg
 
@@ -85,17 +86,17 @@ def find_default_ini(ini_id: str, ini_filename: str) -> Optional[str]:
     """
 
     # Order to search for confiuration files
-    locations: List[str] = [
-        os.path.join(xdg.get_config_dir(ini_id), ini_filename),
-        f"/etc/{ini_filename}",
+    locations = [
+        xdg.get_config_dir(ini_id) / ini_filename,
+        Path("/etc") / ini_filename,
     ]
 
-    ini_files: List[str] = [loc for loc in locations if os.path.isfile(loc)]
+    ini_files = [loc for loc in locations if loc.is_file()]
 
     if not ini_files:
         return None
 
-    with open(ini_files[0]) as f:
+    with ini_files[0].open() as f:
         return f.read()
 
 
@@ -121,8 +122,8 @@ def get_early_parser() -> argparse.ArgumentParser:
 def load_ini(
     config_id: Optional[str],
     config_name: Optional[str],
-    opts: Optional[List[str]] = None,
-) -> Tuple[Optional[configparser.ConfigParser], List[str]]:
+    opts: Optional[list[str]] = None,
+) -> tuple[Optional[configparser.ConfigParser], list[str]]:
     """
     return config, remainder_argv
 
@@ -155,7 +156,7 @@ def load_ini(
     return None, remainder_argv
 
 
-def get_env(key: str) -> Dict[str, str]:
+def get_env(key: str) -> dict[str, str]:
     """
     Get environment variable based on key
     (uppercase and replace "-" with "_")
@@ -167,7 +168,7 @@ def get_env(key: str) -> Dict[str, str]:
     return {}
 
 
-def get_default(action: argparse.Action, section: Dict[str, Any], key: str) -> Any:
+def get_default(action: argparse.Action, section: dict[str, Any], key: str) -> Any:
     """
     Find default value for an option. This will only be used if an
     argument is not specified at the command line. The defaults will
@@ -216,14 +217,14 @@ def get_default(action: argparse.Action, section: Dict[str, Any], key: str) -> A
         # If default is specified as list, set or dict, do not enforce type
         and not isinstance(default, (list, set, dict))
     ):
-        default = action.type(default)
+        default = action.type(default)  # type: ignore
 
     return default
 
 
 def all_defaults(
-    parser: argparse.ArgumentParser, config: Dict[str, Any]
-) -> Dict[str, Any]:
+    parser: argparse.ArgumentParser, config: dict[str, Any]
+) -> dict[str, Any]:
     """Get defaults based on presedence"""
 
     defaults = {}
@@ -253,7 +254,7 @@ def handle_args(
     config_id: Optional[str],
     config_name: Optional[str],
     section_name: Optional[str],
-    opts: Optional[List[str]] = None,
+    opts: Optional[list[str]] = None,
 ) -> argparse.Namespace:
     """
     parses and sets up the command line argument system above

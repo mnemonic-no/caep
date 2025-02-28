@@ -1,10 +1,13 @@
 import shlex
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 import pytest
-from pydantic import BaseModel  # noqa: E0611
-from pydantic import Field, model_validator
+from pydantic import (
+    BaseModel,  # noqa: E0611
+    Field,
+    model_validator,
+)
 from test_schema import parse_args
 
 import caep
@@ -43,7 +46,7 @@ def test_config_files() -> None:
 
 def test_config_files_empty() -> None:
     """raise if config files are not empty"""
-    commandline: List[str] = []
+    commandline: list[str] = []
     config_files = caep.helpers.config_files(commandline)
 
     assert config_files == []

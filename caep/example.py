@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from typing import List
 
 from pydantic import BaseModel, Field
 
@@ -10,7 +9,7 @@ class Config(BaseModel):
     text: str = Field(description="Required String Argument")
     number: int = Field(default=1, description="Integer with default value")
     switch: bool = Field(description="Boolean with default value")
-    intlist: List[int] = Field(
+    intlist: list[int] = Field(
         description="Space separated list of ints",
         json_schema_extra={"split": " "},
     )

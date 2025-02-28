@@ -1,10 +1,12 @@
-""" test config """
+"""test config"""
+
 import argparse
 import os
+from pathlib import Path
 
 from caep import config
 
-INI_TEST_FILE = os.path.join(os.path.dirname(__file__), "data/config_testdata.ini")
+INI_TEST_FILE = str(Path(__file__).parent / "data/config_testdata.ini")
 
 
 def __argparser() -> argparse.ArgumentParser:
