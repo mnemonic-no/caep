@@ -28,7 +28,6 @@ repos:
         types: [python]
         args: [".", "--strict"]
         pass_filenames: false
-        additional_dependencies: ["mypy==1.15.0", "pydantic", "pytest"]
         always_run: true
 
   - repo: local
@@ -38,7 +37,6 @@ repos:
         language: python
         entry: pytest
         types: [python]
-        additional_dependencies: ["pydantic", "pytest==8.3.4"]
         pass_filenames: false
         always_run: true
 
