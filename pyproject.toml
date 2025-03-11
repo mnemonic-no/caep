@@ -1,3 +1,36 @@
+[project]
+name = "caep"
+version = "1.4.0"
+description = "Config Argument Env Parser (CAEP)"
+authors = [{ name = "mnemonic", email = "opensource@mnemonic.no" }]
+requires-python = ">=3.9"
+readme = "README.md"
+license = "ISC"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+    "License :: OSI Approved :: ISC License (ISCL)",
+]
+dependencies = [
+    "pydantic>=1.10.0,<3",
+]
+
+[project.urls]
+Homepage = "https://github.com/mnemonic-no/caep"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0,<9",
+    "pre-commit>=4.0.0,<5",
+    "pre-commit-hooks>=4.6.0,<5",
+    "ruff>=0.9,<1",
+    "mypy>=1.15.0,<2",
+]
+
+[tool.mypy]
+strict = true
+
 [tool.ruff]
 line-length = 88
 target-version = "py39"
@@ -13,22 +46,15 @@ select = [
     "PTH", # Pathlib
     "I",   # isort
     "C",   # mccabe rules
+    "RUF", # Ruff
 ]
 
 ignore = [
-    "E501",   # Ignore long lines - handled by ruff format
-    "B019",   # Use of `functools.lru_cache` or `functools.cache` on methods can lead to memory leaks
+    "RUF015", # Prefer `next(...)` over single element slice
 ]
 
-
-[tool.mypy]
-# This is the way
-strict = true
-
-[tool.pytest.ini_options]
-pythonpath = [
-  "."
-]
+[tool.hatch.build.targets.wheel]
+include = ["caep"]
 
 [build-system]
 requires = ["hatchling"]

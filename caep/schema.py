@@ -11,8 +11,6 @@ from pydantic import BaseModel, ValidationError
 
 import caep
 
-BoundBaseModel = TypeVar("BoundBaseModel", bound=BaseModel)
-
 PYDANTIC_MAJOR_VERSION = pydantic.__version__.split(".")[0]
 
 DEFAULT_SPLIT = ","
@@ -93,7 +91,7 @@ def split_dict(
                 key, val = escape_split(items, dict_info.kv_split, maxsplit=2)
             except ValueError as e:
                 raise FieldError(
-                    f"Unable to split {items} by `{dict_info.kv_split}`"
+                    f"Unable to split {items} by `{dict_info.kv_split}`"
                 ) from e
 
             d[key.strip()] = dict_info.dict_type(val.strip())
@@ -319,7 +317,7 @@ def build_parser(  # noqa: C901
 
 
 def load(
-    model: type[BoundBaseModel],
+    model: type[BaseModelType],
     description: str,
     config_id: Optional[str] = None,
     config_file_name: Optional[str] = None,
@@ -329,7 +327,7 @@ def load(
     raise_on_validation_error: bool = False,
     exit_on_validation_error: bool = True,
     epilog: Optional[str] = None,
-) -> BoundBaseModel:
+) -> BaseModelType:
     """
 
     Load ceap config as derived from pydantic model

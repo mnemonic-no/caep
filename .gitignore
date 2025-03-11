@@ -6,6 +6,10 @@ __pycache__/
 # C extensions
 *.so
 
+.ropeproject
+
+.ruff_cache/
+
 # Distribution / packaging
 .Python
 build/

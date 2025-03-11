@@ -41,7 +41,8 @@ def raise_if_some_and_not_all(entries: dict[str, Any], keys: list[str]) -> None:
             f"--{key.replace('_', '-')}" for key in keys if not entries.get(key)
         )
         raise ArgumentError(
-            f"All or none of these arguments must be set: {all_args}. Missing: {missing_args}"
+            "All or none of these arguments must be set: "
+            f"{all_args}. Missing: {missing_args}"
         )
 
 
@@ -55,7 +56,9 @@ def __mod_name(stack: inspect.FrameInfo) -> Optional[str]:
 
 
 def script_name() -> str:
-    """Return first external module that called this function, directly, or indirectly"""
+    """
+    Return first external module that called this function, directly, or indirectly
+    """
 
     modules = [__mod_name(stack) for stack in inspect.stack() if __mod_name(stack)]
     return [name for name in modules if name and name != modules[0]][0]
