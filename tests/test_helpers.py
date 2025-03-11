@@ -4,7 +4,7 @@ from typing import Optional
 
 import pytest
 from pydantic import (
-    BaseModel,  # noqa: E0611
+    BaseModel,
     Field,
     model_validator,
 )
