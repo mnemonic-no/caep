@@ -31,7 +31,7 @@ def get_xdg_dir(xdg_id: str, env_name: str, default: str, create: bool = False) 
     xdg_dir = Path(xdg_home) / xdg_id
 
     if create and not xdg_dir.is_dir():
-        xdg_dir.mkdir()
+        xdg_dir.mkdir(parents=True)
 
     return xdg_dir
 
