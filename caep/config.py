@@ -55,9 +55,10 @@ Example:
 import argparse
 import configparser
 import os
+import warnings
 from functools import partialmethod
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 
 from . import xdg
 
@@ -249,12 +250,57 @@ def all_defaults(
     return defaults
 
 
+def underscore_keys_to_dash(d: dict[str, Any]) -> dict[str, Any]:
+    """Return a copy of the dictionary with underscore in the keys replace by dash"""
+    return {key.replace("_", "-"): value for key, value in d.items()}
+
+
+def check_and_handle_invalid_config_key(
+    unknown_config_key: Literal["ignore", "warning", "error"],
+    args: argparse.Namespace,
+    config: list[str],
+    config_id: Optional[str],
+    config_name: Optional[str],
+    section_name: Optional[str],
+) -> None:
+    """check that all config arguments are nown and handle them acordingly,
+
+    based on `unknown_config_key`:
+
+    `ignore`  - do nothing
+    `warning` - emit warning
+    `error`   - raise ValueError
+
+    """
+    if unknown_config_key == "ignore":
+        return
+
+    parser_options = args.__dict__.keys()
+    for key in config:
+        if key.replace("-", "_") not in parser_options:
+            config_str = f"{config_id}/{config_name}"
+            if section_name:
+                config_str += f"[{section_name}]"
+            message = f"Unknown option {key} found in configuration {config_str}"
+
+            if unknown_config_key == "warning":
+                warnings.warn(message, RuntimeWarning, stacklevel=1)
+            elif unknown_config_key == "error":
+                raise ValueError(message)
+            else:
+                # This should not happen
+                raise ArgumentError(
+                    f"Illegal argument for unknown_config_key: {unknown_config_key}"
+                )
+
+
 def handle_args(
     parser: argparse.ArgumentParser,
     config_id: Optional[str],
     config_name: Optional[str],
     section_name: Optional[str],
     opts: Optional[list[str]] = None,
+    unknown_config_key: Literal["ignore", "warning", "error"] = "warning",
 ) -> argparse.Namespace:
     """
     parses and sets up the command line argument system above
@@ -286,12 +332,23 @@ def handle_args(
         # the DEFAULT section
         if not cp.has_section(section_name):
             cp.add_section(section_name)
-        config = dict(cp[section_name])
+        config = underscore_keys_to_dash(dict(cp[section_name]))
     elif cp and cp.defaults():
-        config = dict(cp.defaults())
+        config = underscore_keys_to_dash(dict(cp.defaults()))
     else:
         config = {}
 
     parser.set_defaults(**all_defaults(parser, config))
 
-    return parser.parse_args(remainder_argv)
+    args = parser.parse_args(remainder_argv)
+
+    check_and_handle_invalid_config_key(
+        unknown_config_key,
+        args,
+        list(config.keys()),
+        config_id,
+        config_name,
+        section_name,
+    )
+
+    return args

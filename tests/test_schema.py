@@ -3,8 +3,9 @@
 import ipaddress
 import os
 import shlex
+import warnings
 from pathlib import Path
-from typing import Optional
+from typing import Literal, Optional
 
 import pytest
 from pydantic import BaseModel, Field, ValidationError
@@ -116,6 +117,15 @@ class ListSetDictDefaults(BaseModel):
     )
 
 
+class ValidationConfigOK(BaseModel):
+    number: int = Field(default=1, description="Integer with default value")
+    second_file: bool = Field(description="Value set in second config file")
+
+
+class ValidationConfigError(BaseModel):
+    number: int = Field(default=1, description="Integer with default value")
+
+
 class ArgCombined(Arg1, Arg2, Arg3):
     pass
 
@@ -128,6 +138,7 @@ def parse_args(
     config_filename: str = "config_filename",
     section_name: str = "test",
     raise_on_validation_error: bool = False,
+    unknown_config_key: Literal["ignore", "warning", "error"] = "warning",
 ) -> caep.schema.BaseModelType:
     return caep.load(
         model,
@@ -137,6 +148,7 @@ def parse_args(
         section_name,
         opts=commandline,
         raise_on_validation_error=raise_on_validation_error,
+        unknown_config_key=unknown_config_key,
     )
 
 
@@ -266,11 +278,39 @@ def test_schema_commandline_missing_required_print() -> None:
         parse_args(Arguments)
 
 
+def test_schema_strict_config() -> None:
+    """test error handling in config"""
+
+    commandline = shlex.split(f"--config {SECOND_INI_TEST_FILE}")
+
+    assert caep.load(
+        ValidationConfigOK,
+        "Program description",
+        opts=commandline,
+        unknown_config_key="error",
+    )
+
+    with pytest.raises(SystemExit):
+        assert caep.load(
+            ValidationConfigError,
+            "Program description",
+            opts=commandline,
+            unknown_config_key="error",
+        )
+
+
 def test_schema_ini() -> None:
     """all arguments from ini file"""
     commandline = shlex.split(f"--config {INI_TEST_FILE}")
 
-    config = parse_args(Arguments, commandline, section_name="test")
+    # Assert that we have warnings
+    with warnings.catch_warnings(record=True) as w:
+        # Cause all warnings to always be triggered.
+        warnings.simplefilter("always")
+        config = parse_args(Arguments, commandline, section_name="test")
+        assert len(w) == 3
+        assert issubclass(w[-1].category, RuntimeWarning)
+        assert "Unknown option" in str(w[-1].message)
 
     assert config.number == 3
     assert config.str_arg == "from ini"
@@ -282,7 +322,9 @@ def test_schema_ini_default_only() -> None:
     """all arguments from ini file and default section"""
     commandline = shlex.split(f"--config {INI_TEST_FILE}")
 
-    config = caep.load(Arg2, "Program description", opts=commandline)
+    config = caep.load(
+        Arg2, "Program description", opts=commandline, unknown_config_key="ignore"
+    )
 
     assert config.number == 3
 
@@ -291,7 +333,12 @@ def test_schema_ini_default_multiple_files() -> None:
     """all arguments from ini file and default section"""
     commandline = shlex.split(f"--config {INI_TEST_FILE} {SECOND_INI_TEST_FILE}")
 
-    config = caep.load(MultipleFiles, "Program description", opts=commandline)
+    config = caep.load(
+        MultipleFiles,
+        "Program description",
+        opts=commandline,
+        unknown_config_key="ignore",
+    )
 
     # Make sure files has been read in the correct order
     assert config.number == 2
@@ -340,7 +387,9 @@ def test_argparse_env_ini() -> None:
 
     commandline = shlex.split(f"--config {INI_TEST_FILE} --str-arg cmdline")
 
-    config = parse_args(Arguments, commandline, section_name="test")
+    config = parse_args(
+        Arguments, commandline, section_name="test", unknown_config_key="ignore"
+    )
 
     assert config.number == 4
     assert config.str_arg == "cmdline"

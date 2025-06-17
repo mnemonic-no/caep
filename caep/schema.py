@@ -4,7 +4,7 @@
 import argparse
 import re
 import sys
-from typing import Any, Optional, TypeVar, cast
+from typing import Any, Literal, Optional, TypeVar, cast
 
 import pydantic
 from pydantic import BaseModel, ValidationError
@@ -327,6 +327,7 @@ def load(
     raise_on_validation_error: bool = False,
     exit_on_validation_error: bool = True,
     epilog: Optional[str] = None,
+    unknown_config_key: Literal["ignore", "warning", "error"] = "warning",
 ) -> BaseModelType:
     """
 
@@ -365,13 +366,26 @@ def load(
     # Build argument parser based on pydantic fields
     parser, arrays, dicts = build_parser(fields, description, epilog)
 
-    args = split_arguments(
-        args=caep.config.handle_args(
-            parser, config_id, config_file_name, section_name, opts=opts
-        ),
-        arrays=arrays,
-        dicts=dicts,
-    )
+    try:
+        args = split_arguments(
+            args=caep.config.handle_args(
+                parser,
+                config_id,
+                config_file_name,
+                section_name,
+                opts=opts,
+                unknown_config_key=unknown_config_key,
+            ),
+            arrays=arrays,
+            dicts=dicts,
+        )
+    except ValueError as e:
+        if raise_on_validation_error:
+            raise
+        print(e)
+
+        parser.print_help()
+        sys.exit(2)
 
     try:
         return model(**args)

@@ -8,6 +8,15 @@ at load time.
 
 # Change log
 
+## 1.5.0
+
+- Allow options in ini files to have underscores (`_`)
+- Handle unknown options in ini files. As default a warning will be emitted, but this can
+  be configured in `load()` with the `unknown_config_key` option:
+  - `warning`: emit warning (default)
+  - `ignore`: ignore unknown options
+  - `error`: fatal error - raise ValueError and will exit unless `raise_on_validation_error` is `True`
+
 ## 1.3.0
 
 - Use TypeVar in `load` to support typing when loading configuration with a specified module

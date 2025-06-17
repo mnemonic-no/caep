@@ -14,6 +14,7 @@ def __argparser() -> argparse.ArgumentParser:
     parser.add_argument("--number", type=int, default=1)
     parser.add_argument("--enabled", action="store_true")
     parser.add_argument("--str-arg")
+    parser.add_argument("--str-underscore")
 
     return parser
 
@@ -41,12 +42,18 @@ def test_argparse_ini() -> None:
     commandline = f"--config {INI_TEST_FILE}".split()
 
     args = config.handle_args(
-        parser, "actworkers", "actworkers.ini", "test", opts=commandline
+        parser,
+        "actworkers",
+        "actworkers.ini",
+        "test",
+        opts=commandline,
+        unknown_config_key="ignore",
     )
 
     assert args.number == 3
     assert args.str_arg == "from ini"
     assert args.enabled is True
+    assert args.str_underscore == "also from ini"
 
 
 def test_argparse_env() -> None:
@@ -92,7 +99,12 @@ def test_argparse_env_ini() -> None:
     commandline = f"--config {INI_TEST_FILE} --str-arg cmdline".split()
 
     args = config.handle_args(
-        parser, "actworkers", "actworkers.ini", "test", opts=commandline
+        parser,
+        "actworkers",
+        "actworkers.ini",
+        "test",
+        opts=commandline,
+        unknown_config_key="ignore",
     )
 
     assert args.number == 4
