@@ -1,6 +1,6 @@
 [project]
 name = "caep"
-version = "1.4.1"
+version = "1.5.0"
 description = "Config Argument Env Parser (CAEP)"
 authors = [{ name = "mnemonic", email = "opensource@mnemonic.no" }]
 requires-python = ">=3.9"
@@ -25,7 +25,7 @@ dev = [
     "pre-commit>=4.0.0,<5",
     "pre-commit-hooks>=4.6.0,<5",
     "ruff>=0.9,<1",
-    "mypy>=1.15.0,<2",
+    "mypy>=1.16.0,<2",
 ]
 
 [tool.mypy]
