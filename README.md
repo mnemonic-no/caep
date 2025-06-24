@@ -365,3 +365,12 @@ class ExampleConfig(BaseModel):
 
 ## script_name
    Return first external module that called this function, directly, or indirectly
+
+# Testing
+
+We aim to have good test coverage in the library and you can get a coverage report by running:
+
+```bash
+uv run coverage run -m pytest
+uv run coverage report -m
+```
