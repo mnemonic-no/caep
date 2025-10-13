@@ -155,6 +155,23 @@ config = caep.load(
 )
 ```
 
+# Load config without command line support
+
+`opts` argument to `load()` can be used to override what command line arguments should be parse. This is
+used extensively in testing, and can also be used to disable handling of command line arguments.
+
+```python
+# Only load from ini and environment variables
+config = caep.load(
+    Config,
+    "CAEP Example",
+    "caep",  # Find .ini file under ~/.config/caep
+    "caep.ini",  # Find .ini file name caep.ini
+    "section",  # Load settings from [section] (default to [DEFAULT]
+    opts = [],
+)
+```
+
 With the code above you can still specify a ini file with `--config <ini-file>`, and use
 environment variables and command line arguments.
 
