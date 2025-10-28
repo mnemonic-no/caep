@@ -30,7 +30,7 @@ Support list/set/dict defaults, so you can now do:
 intlist: list[int] = Field([0,1,2], description="List of ints")
 ```
 
-The previous way to defined defaults using strings are still supported, but will fail type checking with the pydantic mypy plugin, and will be removed in a later version:
+The previous way to define defaults using strings is still supported, but will fail type checking with the pydantic mypy plugin, and will be removed in a later version:
 
 ```python
 intlist: list[int] = Field("0,1,2", description="List of ints")
@@ -42,7 +42,7 @@ Support for pydantic 2.x. It is advised to migrate models with these changes:
 
 ### Use `min_length` instead of `min_size`
 
-Pydantic has builtin support for size of list, dictionaries and sets using `min_length` so you should change
+Pydantic has built-in support for size of list, dictionaries and sets using `min_length` so you should change
 ```python
 intlist: list[int] = Field(description="Space separated list of ints", min_size=1)
 ```
@@ -88,7 +88,7 @@ dict_int: Dict[str, int] = Field(
 
 ### Migrate `root_validator` to `model_validator`
 
-`root_validator` are stil supported, but it is advised to migrate to `model_validator`. Example using helper function `raise_if_some_and_not_all`:
+`root_validator` are still supported, but it is advised to migrate to `model_validator`. Example using helper function `raise_if_some_and_not_all`:
 
 
 ```python
@@ -157,7 +157,7 @@ config = caep.load(
 
 # Load config without command line support
 
-`opts` argument to `load()` can be used to override what command line arguments should be parse. This is
+`opts` argument to `load()` can be used to override what command line arguments should be parsed. This is
 used extensively in testing, and can also be used to disable handling of command line arguments.
 
 ```python
@@ -172,13 +172,13 @@ config = caep.load(
 )
 ```
 
-With the code above you can still specify a ini file with `--config <ini-file>`, and use
+With the code above you can still specify an ini file with `--config <ini-file>`, and use
 environment variables and command line arguments.
 
 # Pydantic field types
 
 Pydantic fields should be defined using `Field` and include the `description` parameter
-to specify help text for the commandline.
+to specify help text for the command line.
 
 Unless the `Field` has a `default` value, it is a required field that needs to be
 specified in the environment, configuration file or on the command line.
@@ -239,7 +239,7 @@ Some examples:
 | `list[int] = Field(description="Ints", json_schema_extra={"split": " "})` | `1 2`   | [1, 2]        |
 | `list[str] = Field(description="Strs")`                                   | `ab,bc` | ["ab", "bc"]  |
 
-The argument `min_length` (pydantic builtin) can be used to specify the minimum size of the list:
+The argument `min_length` (pydantic built-in) can be used to specify the minimum size of the list:
 
 | Field                                                 | Input | Configuration          |
 | -                                                     | -     | -                      |
@@ -265,7 +265,7 @@ The argument `min_length` can be used to specify the minimum size of the set:
 
 ### `dict[str, <TYPE>]`
 
-Dictioray of strings, split by specified character (default = comma, argument=`split` for
+Dictionary of strings, split by specified character (default = comma, argument=`split` for
 splitting items and colon for splitting key/value).
 
 Some examples:
@@ -275,7 +275,7 @@ Some examples:
 | `Dict[str, str] = Field(description="Dict")`         | `x:a,y:b`            | {"x": "a", "y": "b"}     |
 | `Dict[str, int] = Field(description="Dict of ints")` | `a b c:1, d e f:2`   | {"a b c": 1, "d e f": 2} |
 
-The argument `min_length` can be used to specify the minimum numer of keys in the dictionary:
+The argument `min_length` can be used to specify the minimum number of keys in the dictionary:
 
 | Field                                                      | Input | Configuration          |
 | -                                                          | -     | -                      |
@@ -287,14 +287,14 @@ The argument `min_length` can be used to specify the minimum numer of keys in th
 Arguments are parsed in two phases. First, it will look for the optional argument `--config`
 which can be used to specify an alternative location for the ini file. If not `--config` argument
 is given it will look for an optional ini file in the following locations
-(`~/.config has presedence`) *if* `config_id` and `config_name` is specified:
+(`~/.config has precedence`) *if* `config_id` and `config_name` is specified:
 
 - `~/.config/<CONFIG_ID>/<CONFIG_FILE_NAME>` (or directory specified by `$XDG_CONFIG_HOME`)
 - `/etc/<CONFIG_FILE_NAME>`
 
 The ini file can contain a `[DEFAULT]` section that will be used for all configurations.
 In addition it can have a section that corresponds with `<SECTION_NAME>` (if specified) that for
-specific configuration, that will over override config from `[DEFAULT]`
+specific configuration, that will override config from `[DEFAULT]`
 
 # Environment variables
 
@@ -306,7 +306,7 @@ variables:
 - $BOOL
 - $STR_ARG
 
-The configuration presedence are (from lowest to highest):
+The configuration precedence are (from lowest to highest):
 * argparse default
 * ini file
 * environment variable
@@ -326,8 +326,8 @@ defaults if not specified.
 
 Generic function to get a `XDG` directory.
 
-The following example with will return a path object to ~/.config/myprog
-(if `$XDG_CONFIG_HOME` is not set) and create the directoy if it does not
+The following example will return a path object to ~/.config/myprog
+(if `$XDG_CONFIG_HOME` is not set) and create the directory if it does not
 exist.
 
 ```python
