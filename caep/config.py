@@ -4,19 +4,19 @@
 
 config module, supports loading config from ini, environment and arguments
 
-The configuration presedence are (from lowest to highest):
+The configuration precedence is (from lowest to highest):
     1. argparse default
-    3. ini file
+    2. ini file
     3. environment variable
     4. command line argument
 
 # Config
 
 Arguments are parsed in two phases. First, it will look for the
-argument --config argument which can be used to specify an
-alternative location for the ini file. If not --config argument
+--config argument which can be used to specify an
+alternative location for the ini file. If no --config argument
 is given it will look for an ini file in the following locations
-(~/.config has presedence):
+(~/.config has precedence):
 
 - ~/.config/<CONFIG_ID>/<CONFIG_FILE_NAME>
   (or directory specified by XDG_CONFIG_HOME)
@@ -24,14 +24,14 @@ is given it will look for an ini file in the following locations
 
 The ini file can contain a "[DEFAULT]" section that will be used
 for all configurations. In addition it can have a section that
-corresponds with <SECTION_NAME> that for specific cofiguration,
-that will over overide config from DEFAULT
+corresponds with <SECTION_NAME> for specific configuration,
+that will override config from DEFAULT
 
 # Environment variables
 
 The configuration step will also look for environment variables
 in uppercase and with "-" replaced with "_". For the example below
-it will lookup the following environment
+it will look up the following environment
 variables:
 
     - $NUMBER
@@ -62,8 +62,8 @@ from typing import Any, Literal, Optional
 
 from . import xdg
 
-# Monkeypatch ArgumentParser to not allow abbrevations as those will make it
-# hard to mix and match options on commandline, env and ini files
+# Monkeypatch ArgumentParser to not allow abbreviations as those will make it
+# hard to mix and match options on command line, env and ini files
 argparse.ArgumentParser.__init__ = partialmethod(  # type: ignore
     argparse.ArgumentParser.__init__, allow_abbrev=False
 )
@@ -86,7 +86,7 @@ def find_default_ini(ini_id: str, ini_filename: str) -> Optional[str]:
     Look for default ini files in /etc and ~/.config
     """
 
-    # Order to search for confiuration files
+    # Order to search for configuration files
     locations = [
         xdg.get_config_dir(ini_id) / ini_filename,
         Path("/etc") / ini_filename,
@@ -175,14 +175,14 @@ def get_default(action: argparse.Action, section: dict[str, Any], key: str) -> A
     argument is not specified at the command line. The defaults will
     be found in this order (from lowest to highest):
         1. argparse default
-        3. ini file
+        2. ini file
         3. environment variable
 
     """
     default = action.default
     env = get_env(key)
 
-    # environment has higher presedence than config section
+    # environment has higher precedence than config section
     if key in env:
         default = env[key]
     elif key in section:
@@ -226,7 +226,7 @@ def get_default(action: argparse.Action, section: dict[str, Any], key: str) -> A
 def all_defaults(
     parser: argparse.ArgumentParser, config: dict[str, Any]
 ) -> dict[str, Any]:
-    """Get defaults based on presedence"""
+    """Get defaults based on precedence"""
 
     defaults = {}
 
@@ -251,7 +251,7 @@ def all_defaults(
 
 
 def underscore_keys_to_dash(d: dict[str, Any]) -> dict[str, Any]:
-    """Return a copy of the dictionary with underscore in the keys replace by dash"""
+    """Return a copy of the dictionary with underscores in keys replaced by dashes"""
     return {key.replace("_", "-"): value for key, value in d.items()}
 
 
@@ -263,7 +263,7 @@ def check_and_handle_invalid_config_key(
     config_name: Optional[str],
     section_name: Optional[str],
 ) -> None:
-    """check that all config arguments are nown and handle them acordingly,
+    """Check that all config arguments are known and handle them accordingly,
 
     based on `unknown_config_key`:
 
@@ -303,18 +303,18 @@ def handle_args(
     unknown_config_key: Literal["ignore", "warning", "error"] = "warning",
 ) -> argparse.Namespace:
     """
-    parses and sets up the command line argument system above
+    Parse and set up the command line argument system above
     with config file parsing.
 
     config_id and config_name will be used to locate the default config like this:
         - ~/.config/<CONFIG_ID>/<CONFIG_FILE_NAME>
         - /etc/<CONFIG_FILE_NAME>
 
-    config_id, config_name and section_name is optional and without them
-    configuration will not be loaded from an ini-file.
+    config_id, config_name and section_name are optional and without them
+    configuration will not be loaded from an INI file.
 
-    ArgumentError is raised if some but none all of config_id, config_name and
-    section_name is specified.
+    ArgumentError is raised if some but not all of config_id, config_name and
+    section_name are specified.
     """
 
     config_opts = [config_id, config_name]

@@ -87,7 +87,7 @@ def split_dict(
         # Split on specified field, unless they are escaped
         for items in escape_split(value, dict_info.split):
             try:
-                # Split key val on first occurence of specified split value
+                # Split key val on first occurrence of specified split value
                 key, val = escape_split(items, dict_info.kv_split, maxsplit=2)
             except ValueError as e:
                 raise FieldError(
@@ -331,7 +331,7 @@ def load(
 ) -> BaseModelType:
     """
 
-    Load ceap config as derived from pydantic model
+    Load CAEP config as derived from pydantic model
 
     Arguments:
 
@@ -341,7 +341,7 @@ def load(
         config_file_name                - CAEP config file name
         section_name: str               - CAEP section name from config
         alias: bool                     - Use alias for pydantic schema
-        opts: Optional[List[str]]       - Send option to caep (usefull for
+        opts: Optional[List[str]]       - Send option to CAEP (useful for
                                           testing command line options)
         raise_on_validation_error: bool - Reraise validation errors from pydantic
         exit_on_validation_error: bool  - Exit and print help on validation error
@@ -352,7 +352,7 @@ def load(
     """
 
     # Get all pydantic fields
-    # In pydantix 1.x we use the `schema()` method, but this is replaced with
+    # In pydantic 1.x we use the `schema()` method, but this is replaced with
     # `model_json_schema` in pydantic 2.x.
 
     if PYDANTIC_MAJOR_VERSION == "2":

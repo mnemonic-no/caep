@@ -10,19 +10,19 @@ from pathlib import Path
 
 def get_xdg_dir(xdg_id: str, env_name: str, default: str, create: bool = False) -> Path:
     """
-        Get xdg dir.
+        Get XDG dir.
 
         https://specifications.freedesktop.org/basedir-spec/basedir-spec-0.6.html
 
-        Honors $XDG_*_HOME, but fallbacks to defaults
+        Honors $XDG_*_HOME, but falls back to defaults
 
     Args:
         xdg_id [str]: directory under directory that will be used
         env_name [str]: XDG environment variable, e.g. XDG_CACHE_HOME
         default [str]: default directory in home directory, e.g. .cache
-        create [bool]: create directory if not exists
+        create [bool]: create directory if it does not exist
 
-    Return path to cache_directory
+    Return path to directory
     """
 
     home = Path.home()
@@ -40,7 +40,7 @@ def get_config_dir(config_id: str, create: bool = False) -> Path:
     """
     Get config dir.
 
-    Honors $XDG_CONFIG_HOME, but fallbacks to ".config"
+    Honors $XDG_CONFIG_HOME, but falls back to ".config"
 
     See get_xdg_dir for details
     """
@@ -52,13 +52,13 @@ def get_cache_dir(cache_id: str, create: bool = False) -> Path:
     """
         Get cache dir.
 
-        Honors $XDG_CACHE_HOME, but fallbacks to $HOME/.cache
+        Honors $XDG_CACHE_HOME, but falls back to $HOME/.cache
 
     Args:
         cache_id [str]: directory under CACHE that will be used
-        create [bool]: create directory if not exists
+        create [bool]: create directory if it does not exist
 
-    Return path to cache_directory
+    Return path to cache directory
     """
 
     return get_xdg_dir(cache_id, "XDG_CACHE_HOME", ".cache", create)

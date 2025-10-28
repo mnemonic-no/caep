@@ -11,7 +11,7 @@ class ArgumentError(Exception):
 
 def config_files(arguments: Optional[list[str]] = None) -> list[str]:
     """
-    return list of files specified with --config
+    Return a list of files specified with --config.
     """
     config_files: list[str] = []
 
@@ -29,8 +29,8 @@ def config_files(arguments: Optional[list[str]] = None) -> list[str]:
 
 def raise_if_some_and_not_all(entries: dict[str, Any], keys: list[str]) -> None:
     """
-    Raise ArgumentError if some of the specified entries in the dictionary has non
-    false values but not all
+    Raise ArgumentError if some of the specified entries in the dictionary have
+    non-false values, but not all.
     """
 
     values = [entries.get(key) for key in keys]
@@ -47,7 +47,7 @@ def raise_if_some_and_not_all(entries: dict[str, Any], keys: list[str]) -> None:
 
 
 def __mod_name(stack: inspect.FrameInfo) -> Optional[str]:
-    """Return name of module from a stack ("_" is replaced by "-")"""
+    """Return the name of the module from a stack ("_" is replaced by "-")."""
     mod = inspect.getmodule(stack[0])
     if not mod:
         return None
@@ -57,7 +57,7 @@ def __mod_name(stack: inspect.FrameInfo) -> Optional[str]:
 
 def script_name() -> str:
     """
-    Return first external module that called this function, directly, or indirectly
+    Return the first external module that called this function, directly or indirectly.
     """
 
     modules = [__mod_name(stack) for stack in inspect.stack() if __mod_name(stack)]
