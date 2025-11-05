@@ -340,7 +340,10 @@ def handle_args(
 
     parser.set_defaults(**all_defaults(parser, config))
 
-    args = parser.parse_args(remainder_argv)
+    if unknown_config_key == "ignore":
+        args = parser.parse_known_args(remainder_argv)[0]
+    else:
+        args = parser.parse_args(remainder_argv)
 
     check_and_handle_invalid_config_key(
         unknown_config_key,

@@ -4,6 +4,8 @@ import argparse
 import os
 from pathlib import Path
 
+import pytest
+
 from caep import config
 
 INI_TEST_FILE = str(Path(__file__).parent / "data/config_testdata.ini")
@@ -96,7 +98,9 @@ def test_argparse_env_ini() -> None:
     for key, value in env.items():
         os.environ[key] = str(value)
 
-    commandline = f"--config {INI_TEST_FILE} --str-arg cmdline".split()
+    commandline = (
+        f"--config {INI_TEST_FILE} --str-arg cmdline --unknown-arg 2 other-arg".split()
+    )
 
     args = config.handle_args(
         parser,
@@ -110,6 +114,11 @@ def test_argparse_env_ini() -> None:
     assert args.number == 4
     assert args.str_arg == "cmdline"
     assert args.enabled is True
+    # verify that undefined args are not added to args
+    with pytest.raises(AttributeError):
+        print(args.unknown_arg)
+    with pytest.raises(AttributeError):
+        print(args.other_arg)
 
     # Remove from environment variables
     for key in env:

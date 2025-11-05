@@ -1,6 +1,6 @@
 [project]
 name = "caep"
-version = "1.5.2"
+version = "1.5.3"
 description = "Config Argument Env Parser (CAEP)"
 authors = [{ name = "mnemonic", email = "opensource@mnemonic.no" }]
 requires-python = ">=3.9"
