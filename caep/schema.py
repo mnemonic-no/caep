@@ -151,7 +151,7 @@ def build_parser(  # noqa: C901
     fields: dict[str, dict[str, Any]],
     description: str,
     epilog: Optional[str],
-) -> tuple[argparse.ArgumentParser, Arrays, Dicts]:
+) -> tuple[argparse.ArgumentParser, Arrays, Dicts, Optional[str]]:
     """
 
     Build argument parser based on pydantic fields
@@ -165,6 +165,9 @@ def build_parser(  # noqa: C901
 
     # Map of all fields that are defined as objects (dicts)
     dicts: Dicts = {}
+
+    # Field name that should capture unknown CLI arguments
+    unknown_args_field: Optional[str] = None
 
     # Add epilog to --help output
     if epilog:
@@ -222,6 +225,17 @@ def build_parser(  # noqa: C901
         # for other types we will raise an error if field_type is not specified
         field_type: type = str
         default = schema.get("default")
+
+        unknown_args_marker = (
+            schema.get("json_schema_extra", {}).get("caep_unknown_args")
+            or schema.get("caep_unknown_args")
+        )
+
+        if unknown_args_marker is True:
+            if unknown_args_field is not None:
+                raise FieldError("Only one field can be marked with caep_unknown_args")
+            unknown_args_field = field
+            continue
 
         # In pydantic 2.0+ some fields are represented with anyOf, like this:
         #
@@ -313,7 +327,7 @@ def build_parser(  # noqa: C901
             **parser_args,
         )
 
-    return parser, arrays, dicts
+    return parser, arrays, dicts, unknown_args_field
 
 
 def load(
@@ -364,21 +378,26 @@ def load(
         raise SchemaError(f"Unable to get properties from schema {model}")
 
     # Build argument parser based on pydantic fields
-    parser, arrays, dicts = build_parser(fields, description, epilog)
+    parser, arrays, dicts, unknown_args_field = build_parser(fields, description, epilog)
 
     try:
+        parsed_args, unknown_tokens = caep.config.handle_args(
+            parser,
+            config_id,
+            config_file_name,
+            section_name,
+            opts=opts,
+            unknown_config_key=unknown_config_key,
+            return_unknown_args=True,
+        )
         args = split_arguments(
-            args=caep.config.handle_args(
-                parser,
-                config_id,
-                config_file_name,
-                section_name,
-                opts=opts,
-                unknown_config_key=unknown_config_key,
-            ),
+            args=parsed_args,
             arrays=arrays,
             dicts=dicts,
         )
+
+        if unknown_args_field is not None:
+            args[unknown_args_field] = unknown_tokens
     except ValueError as e:
         if raise_on_validation_error:
             raise

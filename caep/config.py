@@ -301,7 +301,8 @@ def handle_args(
     section_name: Optional[str],
     opts: Optional[list[str]] = None,
     unknown_config_key: Literal["ignore", "warning", "error"] = "warning",
-) -> argparse.Namespace:
+    return_unknown_args: bool = False,
+) -> argparse.Namespace | tuple[argparse.Namespace, list[str]]:
     """
     Parse and set up the command line argument system above
     with config file parsing.
@@ -315,6 +316,9 @@ def handle_args(
 
     ArgumentError is raised if some but not all of config_id, config_name and
     section_name are specified.
+
+    If `return_unknown_args` is True, the return value is a tuple of the parsed
+    Namespace and the list of unknown CLI tokens from `parse_known_args`.
     """
 
     config_opts = [config_id, config_name]
@@ -340,8 +344,10 @@ def handle_args(
 
     parser.set_defaults(**all_defaults(parser, config))
 
+    unknown_args: list[str] = []
+
     if unknown_config_key == "ignore":
-        args = parser.parse_known_args(remainder_argv)[0]
+        args, unknown_args = parser.parse_known_args(remainder_argv)
     else:
         args = parser.parse_args(remainder_argv)
 
@@ -353,5 +359,8 @@ def handle_args(
         config_name,
         section_name,
     )
+
+    if return_unknown_args:
+        return args, unknown_args
 
     return args
