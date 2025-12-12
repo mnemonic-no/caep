@@ -198,7 +198,7 @@ class Config(BaseModel):
 config = caep.load(
     Config,
     "CAEP Example",
-    unknown_config_key="ignore",  # enables parse_known_args
+    unknown_config_key="ignore",
 )
 ```
 
