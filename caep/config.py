@@ -44,7 +44,7 @@ Example:
 >>> parser.add_argument('--number', type=int, default=1)
 >>> parser.add_argument('--bool', action='store_true')
 >>> parser.add_argument('--str-arg')
->>> args = config.handle_args(
+>>> args, _ = config.handle_args(
         parser,
         <CONFIG_ID>,
         <CONFIG_FILE_NAME>,
@@ -302,7 +302,7 @@ def handle_args(
     opts: Optional[list[str]] = None,
     unknown_config_key: Literal["ignore", "warning", "error"] = "warning",
     return_unknown_args: bool = False,
-) -> argparse.Namespace | tuple[argparse.Namespace, list[str]]:
+) -> tuple[argparse.Namespace, list[str]]:
     """
     Parse and set up the command line argument system above
     with config file parsing.
@@ -360,7 +360,4 @@ def handle_args(
         section_name,
     )
 
-    if return_unknown_args:
-        return args, unknown_args
-
-    return args
+    return args, unknown_args

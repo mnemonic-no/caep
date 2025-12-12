@@ -28,7 +28,7 @@ def test_argparse_only() -> None:
 
     commandline = "--str-arg test".split()
 
-    args = config.handle_args(
+    args, _ = config.handle_args(
         parser, "actworkers", "actworkers.ini", "test", opts=commandline
     )
 
@@ -43,7 +43,7 @@ def test_argparse_ini() -> None:
 
     commandline = f"--config {INI_TEST_FILE}".split()
 
-    args = config.handle_args(
+    args, _ = config.handle_args(
         parser,
         "actworkers",
         "actworkers.ini",
@@ -71,7 +71,9 @@ def test_argparse_env() -> None:
     for key, value in env.items():
         os.environ[key] = str(value)
 
-    args = config.handle_args(parser, "actworkers", "actworkers.ini", "test", opts=[])
+    args, _ = config.handle_args(
+        parser, "actworkers", "actworkers.ini", "test", opts=[]
+    )
 
     assert args.number == 4
     assert args.str_arg == "from env"
@@ -102,7 +104,7 @@ def test_argparse_env_ini() -> None:
         f"--config {INI_TEST_FILE} --str-arg cmdline --unknown-arg 2 other-arg".split()
     )
 
-    args = config.handle_args(
+    args, _ = config.handle_args(
         parser,
         "actworkers",
         "actworkers.ini",

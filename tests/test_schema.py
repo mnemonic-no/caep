@@ -516,7 +516,7 @@ def test_unknown_arguments2() -> None:
     )
 
     assert config.text == "hello"
-    assert config.unknown == ["--other", "flags", "value1", "value2"]
+    assert config.unknown == ["--other", "flag", "value1", "value2"]
 
 
 def test_multiple_unknown_argument_fields_not_allowed() -> None:
