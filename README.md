@@ -8,6 +8,10 @@ at load time.
 
 # Change log
 
+## 1.6.0
+
+- Add support to retrieve unknown arguments using `json_schema_extra={"caep_unknown_args": True}`
+
 ## 1.5.0
 
 - Allow options in ini files to have underscores (`_`)
@@ -174,6 +178,44 @@ config = caep.load(
 
 With the code above you can still specify an ini file with `--config <ini-file>`, and use
 environment variables and command line arguments.
+
+# Capture unknown command line arguments
+
+You can capture and keep unknown CLI arguments by marking a single field with
+`json_schema_extra={"caep_unknown_args": True}`. This field will receive the raw
+tokens returned by `argparse.parse_known_args` when `unknown_config_key="ignore"`:
+
+```python
+class Config(BaseModel):
+    text: str = Field(description="Required String Argument")
+    unknown: list[str] = Field(
+        default_factory=list,
+        description="Unknown CLI arguments",
+        json_schema_extra={"caep_unknown_args": True},
+    )
+
+
+config = caep.load(
+    Config,
+    "CAEP Example",
+    unknown_config_key="ignore",
+)
+```
+
+In this mode, unknown CLI tokens are stored in `config.unknown` while known arguments are 
+parsed as usual. Only one field can be marked as unknown-argument.
+
+If you run the above script with this command line:
+
+```
+script.py --text hello --other value1 value2
+```
+
+the config object will have these values:
+```
+test: hello
+unknown: ["--other", "value1", "value2"]
+```
 
 # Pydantic field types
 

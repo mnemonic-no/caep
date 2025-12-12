@@ -130,6 +130,29 @@ class ArgCombined(Arg1, Arg2, Arg3):
     pass
 
 
+class UnknownArgsConfig(BaseModel):
+    text: str = Field(description="Required String Argument")
+    unknown: list[str] = Field(
+        default_factory=list,
+        description="Unknown CLI arguments",
+        json_schema_extra={"caep_unknown_args": True},
+    )
+
+
+class DoubleUnknownArgs(BaseModel):
+    primary: str = Field(description="Primary argument")
+    first_unknown: list[str] = Field(
+        default_factory=list,
+        description="First",
+        json_schema_extra={"caep_unknown_args": True},
+    )
+    second_unknown: list[str] = Field(
+        default_factory=list,
+        description="Second",
+        json_schema_extra={"caep_unknown_args": True},
+    )
+
+
 def parse_args(
     model: type[caep.schema.BaseModelType],
     commandline: Optional[list[str]] = None,
@@ -468,3 +491,40 @@ def test_split_dict() -> None:
 
     with pytest.raises(FieldError):
         split_dict("a,b", DictInfo(dict_type=str))
+
+
+def test_unknown_arguments1() -> None:
+    commandline = shlex.split("--text hello --other flag --third 3")
+
+    config = parse_args(
+        UnknownArgsConfig,
+        commandline,
+        unknown_config_key="ignore",
+    )
+
+    assert config.text == "hello"
+    assert config.unknown == ["--other", "flag", "--third", "3"]
+
+
+def test_unknown_arguments2() -> None:
+    commandline = shlex.split("--text hello --other flag value1 value2")
+
+    config = parse_args(
+        UnknownArgsConfig,
+        commandline,
+        unknown_config_key="ignore",
+    )
+
+    assert config.text == "hello"
+    assert config.unknown == ["--other", "flag", "value1", "value2"]
+
+
+def test_multiple_unknown_argument_fields_not_allowed() -> None:
+    commandline = shlex.split("--primary value --extra something")
+
+    with pytest.raises(FieldError):
+        parse_args(
+            DoubleUnknownArgs,
+            commandline,
+            unknown_config_key="ignore",
+        )
