@@ -202,9 +202,20 @@ config = caep.load(
 )
 ```
 
-In this mode, unknown CLI tokens (e.g. `["--other", "value"]`) are stored in
-`config.unknown` while known arguments are parsed as usual. Only one field can be
-marked as unknown-argument.
+In this mode, unknown CLI tokens are stored in `config.unknown` while known arguments are 
+parsed as usual. Only one field can be marked as unknown-argument.
+
+If you run the above script with this command line:
+
+```
+script.py --text hello --other value1 value2
+```
+
+the config object will have these values:
+```
+test: hello
+unknown: ["--other", "value1", "value2"]
+```
 
 # Pydantic field types
 
